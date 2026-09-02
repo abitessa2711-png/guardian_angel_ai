@@ -11,57 +11,109 @@ import {
   Plus, 
   Layers,
   FolderOpen,
-  Download
+  Download,
+  ExternalLink,
+  BookOpen
 } from 'lucide-react';
 
-export const INITIAL_DATASETS = [
+export const BENCHMARK_DATASETS = [
   {
-    id: 'DS-WOMEN-01',
-    name: 'Tamil Nadu Women Distress & Expression Benchmark',
-    type: 'Video Clips & Bounding Boxes',
-    category: 'Women Distress',
-    samples: 4820,
+    id: 'DS-FER2013',
+    name: 'FER-2013 (Facial Expression Recognition)',
+    bestFor: 'Fear, Sad, Angry, Neutral facial expressions',
+    source: 'Kaggle',
+    sourceUrl: 'https://www.kaggle.com/datasets/pankaj4321/fer-2013-facial-expression-dataset',
+    type: 'Grayscale 48x48 Images',
+    samples: 35887,
     classes: 7,
-    version: 'v2.4',
+    version: 'v1.0 (Standard)',
     status: 'Ready for Training',
-    size: '18.4 GB',
-    lastUpdated: '12 May 2025'
+    size: '287 MB',
+    lastUpdated: 'Standard Benchmark'
   },
   {
-    id: 'DS-HARASS-02',
-    name: 'Urban CCTV Harassment & Trailing Sequences',
-    type: 'Multi-Camera Trajectory CSV + MP4',
-    category: 'Harassment / Stalking',
-    samples: 2350,
-    classes: 5,
-    version: 'v1.8',
-    status: 'Ready for Training',
-    size: '12.1 GB',
-    lastUpdated: '10 May 2025'
-  },
-  {
-    id: 'DS-STRUGGLE-03',
-    name: 'Physical Altercation & Struggle Pose Annotations',
-    type: '2D/3D Pose Keypoints (COCO Format)',
-    category: 'Physical Struggle',
-    samples: 1980,
-    classes: 4,
-    version: 'v1.2',
-    status: 'Annotating (84% Complete)',
-    size: '6.8 GB',
-    lastUpdated: '08 May 2025'
-  },
-  {
-    id: 'DS-ISOLATED-04',
-    name: 'Subway & Low-Light Solo Pedestrian Night Dataset',
-    type: 'Thermal & Enhanced RGB Imagery',
-    category: 'Normal vs Vulnerable',
-    samples: 3400,
-    classes: 3,
+    id: 'DS-CKPLUS',
+    name: 'CK+ (Extended Cohn-Kanade Dataset)',
+    bestFor: 'Facial expression training/evaluation & Action Units',
+    source: 'Kaggle / PMC',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10280470/',
+    type: 'Image Sequences & FACS AUs',
+    samples: 593,
+    classes: 8,
     version: 'v2.0',
     status: 'Ready for Training',
-    size: '9.5 GB',
-    lastUpdated: '04 May 2025'
+    size: '1.2 GB',
+    lastUpdated: 'Research Standard'
+  },
+  {
+    id: 'DS-UCF-CRIME',
+    name: 'UCF-Crime Surveillance Dataset',
+    bestFor: 'CCTV abnormal activities, Abuse, Assault, Fighting, Accidents',
+    source: 'Kaggle + Official UCF',
+    sourceUrl: 'https://www.kaggle.com/datasets/bypktt/ucf-crimes',
+    type: 'Untrimmed Surveillance MP4',
+    samples: 1900,
+    classes: 13,
+    version: 'v1.0',
+    status: 'Ready for Training',
+    size: '110 GB',
+    lastUpdated: 'CCTV Standard'
+  },
+  {
+    id: 'DS-RLVS',
+    name: 'RLVS (Real-Life Violence Situations)',
+    bestFor: 'Real-life violence detection & physical altercation',
+    source: 'Kaggle / PMC',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC13039427/',
+    type: 'Annotated Video Clips (MP4)',
+    samples: 2000,
+    classes: 2,
+    version: 'v1.0',
+    status: 'Ready for Training',
+    size: '4.8 GB',
+    lastUpdated: 'Violence Benchmark'
+  },
+  {
+    id: 'DS-VIOLENT-FLOWS',
+    name: 'Violent-Flows (ViF)',
+    bestFor: 'Crowd violence detection in public surveillance videos',
+    source: 'Official Research / PMC',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC13039427/',
+    type: 'Crowd Surveillance Clips',
+    samples: 246,
+    classes: 2,
+    version: 'v1.0',
+    status: 'Ready for Training',
+    size: '1.6 GB',
+    lastUpdated: 'Research Benchmark'
+  },
+  {
+    id: 'DS-SHANGHAITECH',
+    name: 'ShanghaiTech Campus Dataset',
+    bestFor: 'Real surveillance / anomaly detection & pedestrian behavior',
+    source: 'Official GitHub / PMC',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC13039427/',
+    type: '13-Camera CCTV Streams',
+    samples: 437,
+    classes: 13,
+    version: 'v1.2',
+    status: 'Ready for Training',
+    size: '38 GB',
+    lastUpdated: 'Campus Surveillance'
+  },
+  {
+    id: 'DS-IDD',
+    name: 'Indian Driving Dataset (IDD)',
+    bestFor: 'Road + person + animal + vehicle detection (Indian Traffic)',
+    source: 'Kaggle (YOLO Format)',
+    sourceUrl: 'https://www.kaggle.com/datasets/redzapdos123/indian-driving-dataset-detections-yolov11',
+    type: 'High-Res Frames + YOLO Annotations',
+    samples: 10000,
+    classes: 34,
+    version: 'v1.1',
+    status: 'Ready for Training',
+    size: '14.2 GB',
+    lastUpdated: 'Indian Context Standard'
   }
 ];
 
@@ -73,15 +125,25 @@ export const ANNOTATION_LABELS = [
   { id: 'STALKING', label: 'STALKING', color: 'bg-rose-100 text-rose-800 border-rose-300' },
   { id: 'CHASING', label: 'CHASING', color: 'bg-red-200 text-red-900 border-red-400' },
   { id: 'AGGRESSIVE', label: 'AGGRESSIVE', color: 'bg-red-100 text-red-800 border-red-300' },
-  { id: 'PHYSICAL_STRUGGLE', label: 'PHYSICAL STRUGGLE', color: 'bg-rose-200 text-rose-900 border-rose-400' },
-  { id: 'SUSPICIOUS', label: 'SUSPICIOUS', color: 'bg-amber-100 text-amber-800 border-amber-300' },
+  { id: 'STRUGGLE', label: 'STRUGGLE', color: 'bg-rose-200 text-rose-900 border-rose-400' },
 ];
 
 export default function DatasetManagementView() {
-  const [datasets, setDatasets] = useState(INITIAL_DATASETS);
-  const [selectedDataset, setSelectedDataset] = useState(INITIAL_DATASETS[0]);
+  const [datasets, setDatasets] = useState(BENCHMARK_DATASETS);
+  const [selectedDataset, setSelectedDataset] = useState(BENCHMARK_DATASETS[0]);
   const [selectedLabel, setSelectedLabel] = useState('FEAR');
+  const [search, setSearch] = useState('');
   const [annotationSaved, setAnnotationSaved] = useState(false);
+
+  const filteredDatasets = datasets.filter(ds => {
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      return ds.name.toLowerCase().includes(q) ||
+             ds.bestFor.toLowerCase().includes(q) ||
+             ds.source.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   const handleApplyAnnotation = () => {
     setAnnotationSaved(true);
@@ -92,62 +154,71 @@ export default function DatasetManagementView() {
     <div className="space-y-4 select-none">
       
       {/* Header Bar */}
-      <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="bg-white rounded border border-slate-200 p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center space-x-2">
             <Database className="w-5 h-5 text-blue-600" />
-            <span>AI Dataset Management & Frame Annotation Studio</span>
+            <span>AI Dataset Management & Benchmark Research Repository</span>
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">Upload surveillance footage, bounding box metadata, and assign Ground Truth behavioral labels for AI model training.</p>
+          <p className="text-xs text-slate-500 mt-0.5">Integrates standard international & national benchmark datasets for facial emotion, CCTV violence, stalking, and anomaly detection.</p>
         </div>
 
         <button 
-          onClick={() => alert('Dataset upload dialog initialized')}
+          onClick={() => alert('Dataset Import dialog: Upload CCTV footage, video clips, or CSV annotations')}
           className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold cursor-pointer shadow-xs"
         >
           <Upload className="w-3.5 h-3.5" />
-          <span>Upload New Footage Batch</span>
+          <span>Import Custom Dataset</span>
         </button>
       </div>
 
-      {/* Dataset Ingestion & Category Overview Grid */}
+      {/* Dataset Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
-        <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Training Clips</span>
-          <span className="text-xl font-bold text-slate-900 font-mono">12,550 Frames</span>
-          <span className="text-[11px] text-emerald-700 font-semibold block mt-0.5">4 Production Datasets</span>
+        <div className="bg-white p-3.5 rounded border border-slate-200 shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-slate-400 block">Integrated Benchmarks</span>
+          <span className="text-xl font-bold text-slate-900 font-mono">7 Research Datasets</span>
+          <span className="text-[11px] text-emerald-700 font-semibold block mt-0.5">Kaggle, UCF & PMC Sources</span>
         </div>
-        <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-slate-400 block">Ground Truth Classes</span>
-          <span className="text-xl font-bold text-purple-700 font-mono">9 Key Classes</span>
-          <span className="text-[11px] text-slate-500 block mt-0.5">Pose, Emotion & Vectors</span>
+        <div className="bg-white p-3.5 rounded border border-slate-200 shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Training Samples</span>
+          <span className="text-xl font-bold text-purple-700 font-mono">51,063 Samples</span>
+          <span className="text-[11px] text-slate-500 block mt-0.5">Images, Frames & Video Clips</span>
         </div>
-        <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-slate-400 block">Annotated Coverage</span>
-          <span className="text-xl font-bold text-blue-700 font-mono">94.2%</span>
-          <span className="text-[11px] text-blue-600 block mt-0.5">Verified by Cyber Cell</span>
+        <div className="bg-white p-3.5 rounded border border-slate-200 shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-slate-400 block">Annotation Coverage</span>
+          <span className="text-xl font-bold text-blue-700 font-mono">8 Core Classes</span>
+          <span className="text-[11px] text-blue-600 block mt-0.5">Fear, Distress, Stalking, Struggle</span>
         </div>
-        <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs">
+        <div className="bg-white p-3.5 rounded border border-slate-200 shadow-xs">
           <span className="text-[10px] uppercase font-bold text-slate-400 block">Storage Footprint</span>
-          <span className="text-xl font-bold text-slate-900 font-mono">46.8 GB</span>
+          <span className="text-xl font-bold text-slate-900 font-mono">170.1 GB</span>
           <span className="text-[11px] text-slate-400 font-mono block mt-0.5">Encrypted NVMe Array</span>
         </div>
       </div>
 
-      {/* Main Grid: Dataset Table (7 cols) & Live Annotation Workspace (5 cols) */}
+      {/* Main Grid: Datasets Catalog (7 cols) & Live Annotation Studio (5 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Left: Datasets Catalog (7 cols) */}
-        <div className="lg:col-span-7 bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden">
+        <div className="lg:col-span-7 bg-white rounded border border-slate-200 shadow-xs overflow-hidden flex flex-col">
           <div className="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
             <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
-              Surveillance Training Datasets
+              Standard Benchmark Datasets
             </h4>
-            <span className="text-[11px] text-slate-500 font-medium">COCO & Pascal VOC Formats</span>
+            <div className="relative w-48">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="Filter datasets..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-7 pr-2 py-1 bg-white border border-slate-300 rounded text-[11px] text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600"
+              />
+            </div>
           </div>
 
-          <div className="divide-y divide-slate-100">
-            {datasets.map(ds => {
+          <div className="divide-y divide-slate-100 max-h-[520px] overflow-y-auto">
+            {filteredDatasets.map(ds => {
               const isSelected = selectedDataset.id === ds.id;
 
               return (
@@ -158,21 +229,42 @@ export default function DatasetManagementView() {
                     isSelected ? 'bg-blue-50/80 border-l-4 border-blue-600' : 'hover:bg-slate-50'
                   }`}
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1 pr-2">
                     <div className="flex items-center space-x-2">
                       <span className="font-bold text-xs text-slate-900">{ds.name}</span>
                       <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded font-bold">{ds.version}</span>
                     </div>
-                    <p className="text-[11px] text-slate-600 font-medium">Type: {ds.type}</p>
-                    <div className="flex items-center space-x-3 text-[11px] text-slate-500">
-                      <span>Samples: <strong className="text-slate-800">{ds.samples.toLocaleString()}</strong></span>
-                      <span>Classes: <strong className="text-slate-800">{ds.classes}</strong></span>
-                      <span>Size: <strong className="text-slate-800">{ds.size}</strong></span>
+                    
+                    {/* Best For */}
+                    <p className="text-[11px] text-blue-900 font-semibold">
+                      <strong>Best For:</strong> {ds.bestFor}
+                    </p>
+
+                    {/* Source citation */}
+                    <div className="flex items-center space-x-2 text-[11px] text-slate-600">
+                      <span>Source: <strong>{ds.source}</strong></span>
+                      <a 
+                        href={ds.sourceUrl} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-blue-600 hover:text-blue-800 inline-flex items-center space-x-0.5"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>Link</span>
+                      </a>
+                    </div>
+
+                    <div className="flex items-center space-x-3 text-[10px] text-slate-500 pt-0.5">
+                      <span>Type: <strong className="text-slate-700">{ds.type}</strong></span>
+                      <span>Samples: <strong className="text-slate-700">{ds.samples.toLocaleString()}</strong></span>
+                      <span>Classes: <strong className="text-slate-700">{ds.classes}</strong></span>
+                      <span>Size: <strong className="text-slate-700">{ds.size}</strong></span>
                     </div>
                   </div>
 
-                  <div className="text-right space-y-1">
-                    <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-emerald-100 text-emerald-800">
+                  <div className="text-right space-y-1 shrink-0">
+                    <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded uppercase bg-emerald-100 text-emerald-800">
                       {ds.status}
                     </span>
                     <span className="block text-[10px] text-slate-400 font-mono">{ds.lastUpdated}</span>
@@ -184,20 +276,20 @@ export default function DatasetManagementView() {
         </div>
 
         {/* Right: Interactive Frame Annotation Tool (5 cols) */}
-        <div className="lg:col-span-5 bg-white rounded-lg border border-slate-200 shadow-xs p-4 flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 bg-white rounded border border-slate-200 shadow-xs p-4 flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Frame Annotation Studio</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Dataset Annotation Studio</span>
                 <h4 className="text-sm font-bold text-slate-900">{selectedDataset.name}</h4>
               </div>
               <span className="text-xs font-mono font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
-                Frame #0421
+                Sample #0142
               </span>
             </div>
 
             {/* Video Frame Canvas Preview */}
-            <div className="mt-3 relative aspect-video bg-slate-950 rounded-lg overflow-hidden border border-slate-300">
+            <div className="mt-3 relative aspect-video bg-slate-950 rounded overflow-hidden border border-slate-300">
               <img 
                 src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=600&auto=format&fit=crop" 
                 alt="Annotation frame"
@@ -214,7 +306,7 @@ export default function DatasetManagementView() {
               </div>
 
               <div className="absolute bottom-2 left-2 bg-slate-900/90 text-white font-mono text-[9px] px-2 py-0.5 rounded">
-                1920x1080 • RGB
+                {selectedDataset.type} • RGB
               </div>
             </div>
 
@@ -248,7 +340,7 @@ export default function DatasetManagementView() {
             {annotationSaved && (
               <span className="text-xs font-bold text-emerald-700 flex items-center space-x-1 animate-in fade-in">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Annotation Saved to Manifest</span>
+                <span>Annotation Saved to Dataset Manifest</span>
               </span>
             )}
             {!annotationSaved && <span className="text-[11px] text-slate-400">Shortcut: Press [Enter] to save</span>}

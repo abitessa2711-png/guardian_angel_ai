@@ -11,7 +11,8 @@ import {
   Activity, 
   Info,
   TrendingUp,
-  FileCheck
+  FileCheck,
+  ExternalLink
 } from 'lucide-react';
 
 export const CONFUSION_MATRIX = [
@@ -30,14 +31,24 @@ export const PER_CLASS_METRICS = [
   { className: 'Normal Baseline Activity', precision: '97.4%', recall: '97.7%', f1: '0.975', support: 348 },
 ];
 
+export const DATASET_OPTIONS = [
+  { id: 'FER-2013', name: 'FER-2013 (Facial Expressions - 35,887 samples)', bestFor: 'Fear, Sad, Angry, Neutral', source: 'Kaggle' },
+  { id: 'CK+', name: 'CK+ (Facial Expression Benchmark - 593 sequences)', bestFor: 'FACS Action Units', source: 'Kaggle / PMC' },
+  { id: 'UCF-Crime', name: 'UCF-Crime (Surveillance Anomalies & Assault - 1,900 clips)', bestFor: 'CCTV Abuse, Assault, Fighting', source: 'UCF / Kaggle' },
+  { id: 'RLVS', name: 'RLVS (Real-Life Violence Situations - 2,000 clips)', bestFor: 'Real-Life Violence Detection', source: 'Kaggle / PMC' },
+  { id: 'Violent-Flows', name: 'Violent-Flows ViF (Crowd Violence - 246 clips)', bestFor: 'Public Video Violence', source: 'PMC Research' },
+  { id: 'ShanghaiTech', name: 'ShanghaiTech Campus (Surveillance Anomaly - 437 clips)', bestFor: 'Pedestrian Anomaly Detection', source: 'GitHub / PMC' },
+  { id: 'IDD', name: 'Indian Driving Dataset IDD (Road + Pedestrians - 10,000 frames)', bestFor: 'Indian Traffic Conditions', source: 'Kaggle' },
+];
+
 export default function AITrainingEvaluationView() {
   const [modelArch, setModelArch] = useState('Guardian Angel YOLOv8-Pose + AffectNet v3');
-  const [datasetSelect, setDatasetSelect] = useState('Tamil Nadu Women Distress & Expression Benchmark');
+  const [selectedDatasetId, setSelectedDatasetId] = useState('FER-2013');
   const [epochs, setEpochs] = useState(50);
   const [batchSize, setBatchSize] = useState(32);
   const [learningRate, setLearningRate] = useState('0.001');
   const [isTraining, setIsTraining] = useState(false);
-  const [currentTab, setCurrentTab] = useState('pipeline'); // 'pipeline' or 'evaluation'
+  const [currentTab, setCurrentTab] = useState('pipeline');
 
   const pipelineSteps = [
     { step: 1, name: 'Dataset Import', status: 'Completed' },
@@ -59,7 +70,7 @@ export default function AITrainingEvaluationView() {
             <Cpu className="w-5 h-5 text-blue-600" />
             <span>AI Model Training & Benchmark Evaluation Center</span>
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">End-to-end deep learning training pipeline, hyperparameter configuration, and multi-class confusion matrix evaluation.</p>
+          <p className="text-xs text-slate-500 mt-0.5">End-to-end deep learning training pipeline trained on FER-2013, CK+, UCF-Crime, RLVS, Violent-Flows, ShanghaiTech, and IDD benchmarks.</p>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -88,7 +99,7 @@ export default function AITrainingEvaluationView() {
       <div className="bg-amber-50 border border-amber-300 text-amber-900 p-3 rounded text-xs flex items-center space-x-2">
         <Info className="w-4 h-4 text-amber-700 shrink-0" />
         <span>
-          <strong>Research Disclaimer:</strong> Training metrics and loss curves shown in this interface are <strong>demonstration/mock benchmarks</strong>. Production models undergo offline validation on certified statutory datasets.
+          <strong>Research Standard Notice:</strong> Training metrics and loss curves shown in this UI are <strong>demonstration/mock benchmarks</strong>. Production models undergo validation on statutory certified test splits.
         </span>
       </div>
 
@@ -136,21 +147,25 @@ export default function AITrainingEvaluationView() {
                     onChange={(e) => setModelArch(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 font-semibold text-slate-800 focus:outline-none focus:border-blue-600"
                   >
-                    <option value="Guardian Angel YOLOv8-Pose + AffectNet v3">Guardian Angel YOLOv8-Pose + AffectNet v3</option>
+                    <option value="Guardian Angel YOLOv8-Pose + AffectNet v3">Guardian Angel YOLOv8-Pose + AffectNet v3 (Recommended)</option>
                     <option value="MediaPipe BlazePose + Spatio-Temporal LSTM">MediaPipe BlazePose + Spatio-Temporal LSTM</option>
-                    <option value="ResNet-50 Affective Classifier">ResNet-50 Affective Classifier</option>
+                    <option value="ResNet-50 Affective Classifier (FER/CK+)">ResNet-50 Affective Classifier (FER/CK+)</option>
+                    <option value="SlowFast Dual-Path Violence Detector (UCF/RLVS)">SlowFast Dual-Path Violence Detector (UCF/RLVS)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Training Dataset</label>
+                  <label className="font-bold text-slate-700 block mb-1">Select Benchmark Research Dataset</label>
                   <select
-                    value={datasetSelect}
-                    onChange={(e) => setDatasetSelect(e.target.value)}
+                    value={selectedDatasetId}
+                    onChange={(e) => setSelectedDatasetId(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1.5 font-semibold text-slate-800 focus:outline-none focus:border-blue-600"
                   >
-                    <option value="Tamil Nadu Women Distress & Expression Benchmark">Tamil Nadu Women Distress & Expression Benchmark (4,820 samples)</option>
-                    <option value="Urban CCTV Harassment & Trailing Sequences">Urban CCTV Harassment & Trailing Sequences (2,350 samples)</option>
+                    {DATASET_OPTIONS.map(opt => (
+                      <option key={opt.id} value={opt.id}>
+                        {opt.name} — ({opt.source})
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -207,7 +222,7 @@ export default function AITrainingEvaluationView() {
                   Live Training Metrics (Demo / Simulated Job)
                 </h4>
                 <span className="text-xs font-mono font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
-                  Epoch 38 / 50
+                  Dataset: {selectedDatasetId}
                 </span>
               </div>
 
@@ -232,7 +247,7 @@ export default function AITrainingEvaluationView() {
 
               <div className="mt-4 bg-slate-50 p-3 rounded border border-slate-200 text-xs text-slate-600 space-y-1">
                 <span className="font-bold text-slate-900 block">Deployed Model Artifact:</span>
-                <p className="font-mono text-[11px] text-slate-500">guardian_angel_yolov8_v2.4.onnx (Latency: 18ms/frame)</p>
+                <p className="font-mono text-[11px] text-slate-500">guardian_angel_yolov8_{selectedDatasetId.toLowerCase()}.onnx (18ms/frame)</p>
               </div>
             </div>
 
