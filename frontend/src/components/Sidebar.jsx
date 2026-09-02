@@ -19,7 +19,7 @@ export const NAV_ITEMS = [
   { id: 'alerts', label: 'Alerts & Incidents', icon: Bell, badge: 12, badgeColor: 'bg-blue-600' },
   { id: 'evidence', label: 'Evidence', icon: FolderCheck },
   { id: 'dataset', label: 'Dataset Management', icon: Database },
-  { id: 'ai_training', label: 'AI Training & Evaluation', icon: Cpu },
+  { id: 'ai_training', label: 'AI Training', icon: Cpu },
   { id: 'reports', label: 'Reports', icon: FileText },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];

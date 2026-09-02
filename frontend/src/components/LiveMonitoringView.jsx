@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Video, 
   Play, 
@@ -17,7 +17,8 @@ import {
   Filter,
   Eye,
   Sliders,
-  Info
+  Info,
+  Clock
 } from 'lucide-react';
 
 export const CCTV_CAMERAS = [
@@ -27,6 +28,7 @@ export const CCTV_CAMERAS = [
     location: 'Central Bus Terminal Platform 1',
     video: '/videos/crowd.mp4',
     status: 'LIVE',
+    timestamp: '11:24:10 AM',
     detectedPerson: 'Woman #4412',
     faceExpression: 'FEAR',
     emotionConfidence: 0.92,
@@ -44,6 +46,7 @@ export const CCTV_CAMERAS = [
     location: 'Underground Pedestrian Subway',
     video: '/videos/isolated.mp4',
     status: 'LIVE',
+    timestamp: '11:22:05 AM',
     detectedPerson: 'Woman #4419',
     faceExpression: 'DISTRESS',
     emotionConfidence: 0.88,
@@ -61,6 +64,7 @@ export const CCTV_CAMERAS = [
     location: 'Temple Car Street Walkway',
     video: '/videos/crowd.mp4',
     status: 'LIVE',
+    timestamp: '11:21:47 AM',
     detectedPerson: 'Woman #4418',
     faceExpression: 'ANGER / DISTRESS',
     emotionConfidence: 0.91,
@@ -78,6 +82,7 @@ export const CCTV_CAMERAS = [
     location: 'University Highway & Bus Bay Cross',
     video: '/videos/traffic.mp4',
     status: 'LIVE',
+    timestamp: '11:25:00 AM',
     detectedPerson: 'Woman #4425',
     faceExpression: 'NORMAL',
     emotionConfidence: 0.96,
@@ -95,6 +100,7 @@ export const CCTV_CAMERAS = [
     location: 'Bazaar North Wholesale Corridor',
     video: '/videos/isolated.mp4',
     status: 'LIVE',
+    timestamp: '11:20:31 AM',
     detectedPerson: 'Woman #4430',
     faceExpression: 'SADNESS / DISTRESS',
     emotionConfidence: 0.84,
@@ -112,6 +118,7 @@ export const CCTV_CAMERAS = [
     location: 'Junction Station Auto Stand',
     video: '/videos/threat.mp4',
     status: 'LIVE',
+    timestamp: '11:19:22 AM',
     detectedPerson: 'Woman #4435',
     faceExpression: 'NORMAL',
     emotionConfidence: 0.94,
@@ -127,10 +134,19 @@ export const CCTV_CAMERAS = [
 
 export default function LiveMonitoringView({ onCaptureSnapshot, onDispatchAlert }) {
   const [selectedCam, setSelectedCam] = useState(CCTV_CAMERAS[0]);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' (2x2 or 3x2) or 'focus' (Single Big)
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' (2x2 or 3x2) or 'focus'
   const [isAudioMuted, setIsAudioMuted] = useState(true);
   const [capturedBanner, setCapturedBanner] = useState(null);
+  const [liveClock, setLiveClock] = useState('');
+
+  useEffect(() => {
+    const update = () => {
+      setLiveClock(new Date().toLocaleTimeString('en-US', { hour12: true }));
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSnapshot = (cam) => {
     setCapturedBanner(`Evidence frame captured from ${cam.name} (Risk: ${cam.riskScore}%) and vaulted.`);
@@ -292,13 +308,18 @@ export default function LiveMonitoringView({ onCaptureSnapshot, onDispatchAlert 
                     )}
                   </svg>
 
-                  {/* LIVE Badge */}
-                  <div className="absolute top-2 left-2 bg-emerald-600/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                    LIVE
+                  {/* Top-Left: LIVE Badge & Timestamp */}
+                  <div className="absolute top-2 left-2 flex items-center space-x-1.5 z-20">
+                    <div className="bg-emerald-600/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs">
+                      LIVE
+                    </div>
+                    <div className="bg-slate-900/80 text-white font-mono text-[9px] px-1.5 py-0.5 rounded">
+                      {liveClock || cam.timestamp}
+                    </div>
                   </div>
 
-                  {/* Telemetry */}
-                  <div className="absolute top-2 right-2 bg-slate-900/80 text-white font-mono text-[9px] px-1.5 py-0.5 rounded">
+                  {/* Top-Right: Telemetry */}
+                  <div className="absolute top-2 right-2 bg-slate-900/80 text-white font-mono text-[9px] px-1.5 py-0.5 rounded z-20">
                     {cam.fps} FPS
                   </div>
                 </div>
