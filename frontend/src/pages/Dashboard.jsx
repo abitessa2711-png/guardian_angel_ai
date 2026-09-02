@@ -2,25 +2,14 @@ import React, { useState } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import DashboardView from '../components/DashboardView';
-import WomenSafetyMonitoringView from '../components/WomenSafetyMonitoringView';
 import LiveMonitoringView from '../components/LiveMonitoringView';
-import WomenAtRiskView from '../components/WomenAtRiskView';
-import HarassmentDetectionView from '../components/HarassmentDetectionView';
-import FacialDistressView from '../components/FacialDistressView';
-import BehaviorAnalysisView from '../components/BehaviorAnalysisView';
+import WomenSafetyMonitoringView from '../components/WomenSafetyMonitoringView';
 import AlertsView from '../components/AlertsView';
 import EvidenceView from '../components/EvidenceView';
 import DatasetManagementView from '../components/DatasetManagementView';
-import AIModelTrainingView from '../components/AIModelTrainingView';
-import ModelEvaluationView from '../components/ModelEvaluationView';
-import AnalyticsView from '../components/AnalyticsView';
-import AnimalMonitoringView from '../components/AnimalMonitoringView';
-import IncidentsView from '../components/IncidentsView';
+import AITrainingEvaluationView from '../components/AITrainingEvaluationView';
 import ReportsView from '../components/ReportsView';
-import AuditLogsView from '../components/AuditLogsView';
 import SettingsView from '../components/SettingsView';
-import UsersView from '../components/UsersView';
-import SystemStatusView from '../components/SystemStatusView';
 import AlertDetailModal from '../components/AlertDetailModal';
 import DispatchModal from '../components/DispatchModal';
 import EvidenceModal from '../components/EvidenceModal';
@@ -38,7 +27,7 @@ export default function Dashboard() {
   };
 
   const handleCaptureSnapshot = (camera) => {
-    showToast(`Evidence Snapshot captured from ${camera.name || camera.id} and saved to Evidence Vault.`);
+    showToast(`Evidence Snapshot captured from ${camera.name || camera.id} and vaulted with SHA-256 hash.`);
   };
 
   const handleDispatchAlert = (alertOrIncident) => {
@@ -52,13 +41,13 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#f1f5f9] flex flex-col font-sans text-slate-800 antialiased select-none">
       
-      {/* 1. Government Control Room Header with Tamil Nadu Seal */}
+      {/* 1. Government Header with Tamil Nadu State Seal */}
       <Header 
         onSelectAlert={(alert) => setSelectedAlert(alert)} 
         unreadCount={5}
       />
 
-      {/* 2. Main Workspace Layout: Left Navigation Sidebar + Right Dynamic Content View */}
+      {/* 2. Main Workspace Layout: 9-Module Left Sidebar + Active Viewport */}
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Navigation Sidebar */}
@@ -73,18 +62,18 @@ export default function Dashboard() {
           {/* Breadcrumb Bar */}
           <div className="mb-3.5 flex items-center justify-between no-print">
             <div className="flex items-center space-x-2 text-xs">
-              <span className="text-slate-400 font-medium">Women Safety Command</span>
+              <span className="text-slate-400 font-medium">Women Safety Control Room</span>
               <span className="text-slate-300">/</span>
               <span className="font-bold text-slate-900 capitalize tracking-wide">
                 {activeTab.replace(/_/g, ' ')}
               </span>
             </div>
             <div className="text-[11px] text-slate-500 font-mono">
-              TAMIL NADU POLICE • WOMEN SAFETY SURVEILLANCE & AI RISK GRID
+              TAMIL NADU POLICE • TRICHY WOMEN SAFETY SURVEILLANCE GRID
             </div>
           </div>
 
-          {/* Active View Router */}
+          {/* Active View Router for the 9 Main Modules */}
           {activeTab === 'dashboard' && (
             <DashboardView 
               onSelectAlert={(alert) => setSelectedAlert(alert)}
@@ -93,40 +82,16 @@ export default function Dashboard() {
             />
           )}
 
-          {activeTab === 'women_safety' && (
-            <WomenSafetyMonitoringView 
-              onSelectAlert={(alert) => setSelectedAlert(alert)}
-              onDispatchAlert={handleDispatchAlert}
-            />
-          )}
-
           {activeTab === 'live_cctv' && (
             <LiveMonitoringView 
               onCaptureSnapshot={handleCaptureSnapshot}
-            />
-          )}
-
-          {activeTab === 'women_at_risk' && (
-            <WomenAtRiskView 
               onDispatchAlert={handleDispatchAlert}
             />
           )}
 
-          {activeTab === 'harassment' && (
-            <HarassmentDetectionView 
+          {activeTab === 'women_safety' && (
+            <WomenSafetyMonitoringView 
               onSelectAlert={(alert) => setSelectedAlert(alert)}
-              onDispatchAlert={handleDispatchAlert}
-            />
-          )}
-
-          {activeTab === 'facial_distress' && (
-            <FacialDistressView 
-              onSelectAlert={(alert) => setSelectedAlert(alert)}
-            />
-          )}
-
-          {activeTab === 'behavior' && (
-            <BehaviorAnalysisView 
               onDispatchAlert={handleDispatchAlert}
             />
           )}
@@ -148,30 +113,12 @@ export default function Dashboard() {
             <DatasetManagementView />
           )}
 
-          {activeTab === 'training' && (
-            <AIModelTrainingView />
-          )}
-
-          {activeTab === 'evaluation' && (
-            <ModelEvaluationView />
-          )}
-
-          {activeTab === 'analytics' && (
-            <AnalyticsView />
-          )}
-
-          {activeTab === 'animal_safety' && (
-            <AnimalMonitoringView 
-              onDispatchAlert={handleDispatchAlert}
-            />
+          {activeTab === 'ai_training' && (
+            <AITrainingEvaluationView />
           )}
 
           {activeTab === 'reports' && (
             <ReportsView />
-          )}
-
-          {activeTab === 'audit_logs' && (
-            <AuditLogsView />
           )}
 
           {activeTab === 'settings' && (
@@ -210,7 +157,7 @@ export default function Dashboard() {
 
       {/* 4. Global Action Toast Feedback */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 bg-[#0b1b30] text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-xl border border-slate-700 flex items-center space-x-2 animate-in slide-in-from-bottom-3 duration-200">
+        <div className="fixed bottom-5 right-5 z-50 bg-[#0b1b30] text-white text-xs font-semibold px-4 py-2.5 rounded shadow-xl border border-slate-700 flex items-center space-x-2 animate-in slide-in-from-bottom-3 duration-200">
           <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
           <span>{toastMessage}</span>
         </div>
