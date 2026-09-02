@@ -11,304 +11,403 @@ import {
   Info,
   MapPin,
   CheckCircle,
-  AlertTriangle,
-  Flame,
-  Thermometer,
-  Wind,
-  Users,
-  ShieldCheck,
-  Building
+  AlertTriangle
 } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 
-export default function HeatmapView({ alerts = [], cameras = [], isDemoActive = false, demoStep = 0, inline = false }) {
-  const { t, language } = useLanguage();
-  const [selectedZone, setSelectedZone] = useState(null);
-  const [mapMode, setMapMode] = useState('blueprint'); // 'blueprint' or 'gis'
-  const [showSensors, setShowSensors] = useState(true);
-  const [showWorkers, setShowWorkers] = useState(true);
+export default function HeatmapView({ alerts, cameras, isDemoActive = false, demoStep = 0, inline = false }) {
+  const [selectedCam, setSelectedCam] = useState(null);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [ptzState, setPtzState] = useState({ pan: 0, tilt: -10, zoom: 1 });
+  const [showRoutes, setShowRoutes] = useState(true);
 
-  // Fireworks MSME Factory Zones
-  const factoryZones = [
-    { id: 1, name: 'Raw Material Store', short: 'RAW CHEMICALS', cam: 'CAM-01', x: 18, y: 22, width: 22, height: 16, risk: 'Normal', temp: 30.5, gas: 95, workers: 2, desc: 'Potassium Chlorate & Nitrate Storage Vault' },
-    { id: 2, name: 'Chemical Mixing Shed 1', short: 'MIXING SHED 1', cam: 'CAM-02', x: 44, y: 18, width: 20, height: 16, risk: 'Normal', temp: 32.0, gas: 140, workers: 2, desc: 'High Hazard Chemical Compounding (External Camera Obs)' },
-    { id: 3, name: 'Chemical Mixing Shed 2', short: 'MIXING SHED 2', cam: 'CAM-03', x: 68, y: 18, width: 20, height: 16, risk: 'Normal', temp: 31.8, gas: 130, workers: 1, desc: 'Secondary Powder Formulation Room' },
-    { id: 4, name: 'Pulverizer & Grinding Shed', short: 'GRINDING SHED', cam: 'CAM-04', x: 18, y: 44, width: 22, height: 18, risk: isDemoActive && demoStep >= 5 ? 'Critical' : isDemoActive && demoStep >= 2 ? 'Warning' : 'Normal', temp: isDemoActive && demoStep >= 5 ? 44.5 : isDemoActive && demoStep >= 2 ? 38.0 : 33.2, gas: isDemoActive && demoStep >= 5 ? 620 : 180, workers: isDemoActive && demoStep >= 5 ? 0 : 4, desc: 'Aluminium Powder & Charcoal Grinding (Thermal Monitored)' },
-    { id: 5, name: 'Open Sun Drying Yard North', short: 'DRYING YARD (N)', cam: 'CAM-05', x: 44, y: 40, width: 44, height: 22, risk: 'Normal', temp: 34.0, gas: 45, workers: 5, desc: 'Open Ground Solar Radiation & Thermal Dissipation' },
-    { id: 6, name: 'Filling & Assembly Hall', short: 'ASSEMBLY LINE', cam: 'CAM-10', x: 18, y: 68, width: 34, height: 18, risk: 'Normal', temp: 31.0, gas: 110, workers: 8, desc: 'Fuse Insertion, Pellet Filling & Packaging' },
-    { id: 7, name: 'Secondary Boxing & Packaging', short: 'PACKAGING', cam: 'CAM-11', x: 56, y: 68, width: 32, height: 18, risk: 'Normal', temp: 30.2, gas: 80, workers: 11, desc: 'Cardboard Box Packaging & Labeling' },
-    { id: 8, name: 'Explosive Magazine Vault', short: 'MAGAZINE BUNKER', cam: 'CAM-12', x: 74, y: 44, width: 18, height: 18, risk: 'Normal', temp: 28.5, gas: 35, workers: 0, desc: 'Final Finished Explosive Vault (Reinforced Mound Structure)' }
+  // Map coordinates in SVG viewBox units (0 to 100)
+  const trichyNodes = [
+    { id: 1, name: 'CCTV-01 CHATRAM_BUS_STAND', short: 'Chatram Stand', x: 50, y: 28, desc: 'Chatram Bus Stand Outer Gates' },
+    { id: 2, name: 'CCTV-02 CENTRAL_BUS_STAND', short: 'Central Stand', x: 44, y: 58, desc: 'Central Bus Terminal Platform 1 Gate' },
+    { id: 3, name: 'CCTV-03 RAILWAY_JUNCTION', short: 'Railway Jn', x: 42, y: 72, desc: 'Trichy Railway Junction Entrance' },
+    { id: 4, name: 'CCTV-04 ROCKFORT_TEMPLE_ROAD', short: 'Rockfort Rd', x: 56, y: 36, desc: 'Rockfort Temple Bazaar Street' },
+    { id: 5, name: 'CCTV-05 SRIRANGAM_TEMPLE', short: 'Srirangam Gate', x: 48, y: 12, desc: 'Srirangam Temple Entrance' },
+    { id: 6, name: 'CCTV-06 NIT_TRICHY', short: 'NIT Gate', x: 82, y: 78, desc: 'NIT Trichy Highway Gate' }
   ];
 
-  const getZoneFill = (risk) => {
-    if (risk === 'Critical') return 'rgba(239, 68, 68, 0.35)';
-    if (risk === 'Warning') return 'rgba(245, 158, 11, 0.25)';
-    return 'rgba(14, 165, 233, 0.12)';
+  // Helper to match database camera names
+  const getCameraStatus = (camId, camStatus, camName = '') => {
+    if (isDemoActive && camName.includes('ROCKFORT')) {
+      if (demoStep >= 10) return 'threat';
+      return 'online';
+    }
+    if (camStatus === 'Offline') return 'offline';
+    // Check if there are active high-risk alerts (risk >= 75)
+    const activeThreat = alerts.some(a => a.camera_id === camId && a.status === 'New' && a.risk_score >= 75);
+    if (activeThreat) return 'threat';
+    return 'online';
   };
 
-  const getZoneStroke = (risk) => {
-    if (risk === 'Critical') return '#ef4444';
-    if (risk === 'Warning') return '#f59e0b';
-    return '#0ea5e9';
+  const getStatusColor = (status) => {
+    if (status === 'threat') return 'text-surveillance-danger border-surveillance-danger bg-surveillance-danger/10';
+    if (status === 'offline') return 'text-surveillance-warning border-surveillance-warning bg-surveillance-warning/10';
+    return 'text-surveillance-success border-surveillance-success bg-surveillance-success/10';
   };
 
-  return (
-    <div className="bg-surveillance-panel p-4 rounded-lg border border-surveillance-border shadow-cmd font-mono select-none space-y-4">
+  const getMarkerFill = (status) => {
+    if (status === 'threat') return '#ef4444'; // Red
+    if (status === 'offline') return '#f59e0b'; // Yellow
+    return '#10b981'; // Green
+  };
+
+  const handleMarkerClick = (node) => {
+    setSelectedCam(node);
+    setIsZoomed(true);
+  };
+
+  const resetMapZoom = () => {
+    setIsZoomed(false);
+    setSelectedCam(null);
+    setPtzState({ pan: 0, tilt: -10, zoom: 1 });
+  };
+
+  // PTZ Control Simulation
+  const adjustPTZ = (type, amount) => {
+    setPtzState(prev => {
+      if (type === 'pan') return { ...prev, pan: prev.pan + amount };
+      if (type === 'tilt') return { ...prev, tilt: Math.max(-45, Math.min(20, prev.tilt + amount)) };
+      if (type === 'zoom') return { ...prev, zoom: Math.max(1, Math.min(6, prev.zoom + amount)) };
+      return prev;
+    });
+  };
+
+  // Dynamic ViewBox for SVG Zoom
+  const getViewBox = () => {
+    if (isZoomed && selectedCam) {
+      // Crop coordinate viewport around selected camera
+      const width = 30;
+      const height = 30;
+      const x = Math.max(0, Math.min(100 - width, selectedCam.x - width / 2));
+      const y = Math.max(0, Math.min(100 - height, selectedCam.y - height / 2));
+      return `${x} ${y} ${width} ${height}`;
+    }
+    return '0 0 100 100';
+  };
+
+  // Active threat flag
+  const hasActiveThreat = alerts.some(a => a.status === 'New' && a.risk_score >= 75) || (isDemoActive && demoStep >= 10);
+
+  const mapPanelContent = (
+    <div className={`bg-surveillance-panel border border-surveillance-border rounded-lg p-5 flex flex-col justify-between relative ${inline ? 'h-[520px]' : 'h-[calc(100vh-14rem)] min-h-[500px]'}`}>
       
-      {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-surveillance-border/60 pb-3 gap-2">
-        <div>
-          <h2 className="text-sm md:text-base font-black tracking-wider text-white flex items-center space-x-2">
-            <Map className="h-5 w-5 text-sky-400" />
-            <span>{t('factory_map')} & Hazard Heatmap Blueprint</span>
-          </h2>
-          <p className="text-2xs text-slate-400 mt-0.5">
-            Fireworks MSME Safe Observation Camera Locations & Real-Time Thermal Gradient Overlay
+      {/* Map Header Overlay */}
+      <div className="flex justify-between items-center mb-4 border-b border-surveillance-border pb-3 z-20">
+        <div className="flex items-center space-x-2">
+          <Compass className="h-5 w-5 text-surveillance-accent animate-spin-slow" />
+          <div>
+            <h3 className="text-sm font-bold tracking-widest text-white uppercase">
+              TIRUCHIRAPPALLI City GIS RADAR PLOT
+            </h3>
+            <p className="text-4xs text-surveillance-textMuted mt-0.5">TRICHY DISTRICT POLICE SURVEILLANCE MATRIX</p>
+          </div>
+        </div>
+        
+        {/* Controls */}
+        <div className="flex space-x-2.5 text-3xs">
+          <button
+            onClick={() => setShowRoutes(!showRoutes)}
+            className={`px-2 py-1 rounded border transition-all cursor-pointer ${
+              showRoutes 
+                ? 'bg-surveillance-accent/15 border-surveillance-accent text-surveillance-accent' 
+                : 'bg-surveillance-header border-surveillance-border text-surveillance-textMuted'
+            }`}
+          >
+            {showRoutes ? 'HIDE RESPONSE ROUTES' : 'SHOW RESPONSE ROUTES'}
+          </button>
+          {isZoomed && (
+            <button
+              onClick={resetMapZoom}
+              className="px-2 py-1 rounded bg-surveillance-danger/10 hover:bg-surveillance-danger hover:text-white border border-surveillance-danger/30 text-surveillance-danger transition-all cursor-pointer flex items-center space-x-1"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>RESET MAP VIEW</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* SVG Viewport */}
+      <div className="flex-1 w-full bg-[#03060c] border border-surveillance-border/40 rounded relative overflow-hidden flex items-center justify-center">
+        
+        {/* CRT scan lines overlay */}
+        <div className="absolute inset-0 surveillance-monitor pointer-events-none z-30"></div>
+        
+        {/* Grid Background */}
+        <div className="absolute inset-0 surveillance-grid opacity-20 pointer-events-none"></div>
+
+        {/* Compass overlay in corner */}
+        <div className="absolute bottom-4 right-4 pointer-events-none z-20 opacity-30 text-surveillance-accent">
+          <div className="w-12 h-12 rounded-full border border-dashed border-surveillance-accent flex items-center justify-center">
+            <span className="text-4xs font-bold font-mono">N</span>
+          </div>
+        </div>
+
+        <svg 
+          className="w-full h-full max-h-[440px] z-10 transition-all duration-700 ease-in-out" 
+          viewBox={getViewBox()}
+        >
+          {/* Concentric Radar Sweeps */}
+          <circle cx="50" cy="50" r="15" fill="none" stroke="#0ea5e9" strokeWidth="0.08" strokeDasharray="1,2" opacity="0.3" />
+          <circle cx="50" cy="50" r="30" fill="none" stroke="#0ea5e9" strokeWidth="0.08" strokeDasharray="1,2" opacity="0.3" />
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#0ea5e9" strokeWidth="0.08" strokeDasharray="1,2" opacity="0.2" />
+
+          {/* Sweep Ray */}
+          {!isZoomed && (
+            <line x1="50" y1="50" x2="100" y2="20" stroke="#0ea5e9" strokeWidth="0.1" opacity="0.35" className="origin-center animate-[spin_10s_linear_infinite]" />
+          )}
+
+          {/* Simulated Road Networks (Trichy Arterial Roads) */}
+          {/* Srirangam to Chatram */}
+          <line x1="48" y1="12" x2="50" y2="28" stroke="#1f293d" strokeWidth="0.4" />
+          {/* Chatram to Rockfort */}
+          <line x1="50" y1="28" x2="56" y2="36" stroke="#1f293d" strokeWidth="0.4" />
+          {/* Rockfort to Central */}
+          <line x1="56" y1="36" x2="44" y2="58" stroke="#1f293d" strokeWidth="0.4" />
+          {/* Central to Junction */}
+          <line x1="44" y1="58" x2="42" y2="72" stroke="#1f293d" strokeWidth="0.4" />
+          {/* Junction to NIT Trichy */}
+          <line x1="42" y1="72" x2="82" y2="78" stroke="#1f293d" strokeWidth="0.4" />
+
+          {/* Animated Emergency Patrol Routes Overlay */}
+          {showRoutes && (hasActiveThreat || (isDemoActive && demoStep >= 12)) && (
+            <>
+              {/* Glowing alert response route line from Junction Station to Rockfort Temple Rd */}
+              <path
+                d="M 42 72 L 44 58 L 56 36"
+                fill="none"
+                stroke="#ef4444"
+                strokeWidth="0.8"
+                strokeDasharray="2, 2"
+                className="animate-[dash_2s_linear_infinite]"
+                style={{ strokeDashoffset: 100 }}
+              />
+              {/* Moving dot representing patrol car */}
+              <circle r="1" fill="#ef4444" opacity="0.9" className="animate-[pulse_1s_infinite]">
+                <animateMotion
+                  path="M 42 72 L 44 58 L 56 36"
+                  dur="5s"
+                  repeatCount="indefinite"
+                />
+              </circle>
+            </>
+          )}
+
+          {/* Render Node Markers */}
+          {trichyNodes.map((node) => {
+            const liveCam = cameras.find(c => c.name.replace(/\s+/g, '_') === node.name) || { status: 'Active', name: node.name };
+            const status = getCameraStatus(liveCam.id, liveCam.status, liveCam.name);
+            const color = getMarkerFill(status);
+            const isSelected = selectedCam?.id === node.id;
+
+            return (
+              <g 
+                key={node.id} 
+                className="cursor-pointer"
+                onClick={() => handleMarkerClick(node)}
+              >
+                {/* Glowing Radar Pulse under threat nodes */}
+                {status === 'threat' && (
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={isSelected ? 6 : 4}
+                    fill="none"
+                    stroke={color}
+                    strokeWidth="0.3"
+                    className="animate-ping"
+                    style={{ transformOrigin: `${node.x}px ${node.y}px` }}
+                  />
+                )}
+
+                {/* Marker Circle */}
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={isSelected ? 2.5 : 1.5}
+                  fill={color}
+                  stroke="#ffffff"
+                  strokeWidth={isSelected ? 0.4 : 0}
+                  className="transition-all duration-300 hover:scale-125"
+                />
+
+                {/* Label Text */}
+                <text 
+                  x={node.x} 
+                  y={node.y - 3} 
+                  fill={status === 'threat' ? '#ef4444' : '#94a3b8'} 
+                  fontSize={isZoomed ? "1.5" : "2"} 
+                  fontWeight="bold"
+                  textAnchor="middle"
+                  className="pointer-events-none font-sans tracking-wide"
+                >
+                  {node.short}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* Map HUD Data panel in corner */}
+        <div className="absolute top-4 left-4 z-20 bg-surveillance-panel/90 border border-surveillance-border p-3 rounded font-mono text-3xs text-white space-y-1">
+          <p className="text-2xs font-bold text-surveillance-accent border-b border-surveillance-border pb-1 uppercase">DISTRICT DATA HUD</p>
+          <p>SECTOR: TIRUCHIRAPPALLI CITY</p>
+          <p>ACTIVE FEED NODES: {cameras.filter(c => c.status === 'Active').length}</p>
+          <p className="flex justify-between">
+            <span>ALARM LEVEL:</span>
+            <span className={hasActiveThreat ? 'text-surveillance-danger font-bold animate-pulse' : 'text-surveillance-success'}>
+              {hasActiveThreat ? 'CRITICAL THREAT' : 'SECURE'}
+            </span>
           </p>
         </div>
+      </div>
+    </div>
+  );
 
-        <div className="flex items-center space-x-2 text-2xs">
-          <button
-            onClick={() => setShowSensors(prev => !prev)}
-            className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${
-              showSensors ? 'bg-sky-500/20 border-sky-500/50 text-sky-300' : 'bg-slate-900 border-slate-700 text-slate-500'
-            }`}
-          >
-            {showSensors ? '✓ IoT Sensors Visible' : 'IoT Sensors Hidden'}
-          </button>
-          <button
-            onClick={() => setShowWorkers(prev => !prev)}
-            className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${
-              showWorkers ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300' : 'bg-slate-900 border-slate-700 text-slate-500'
-            }`}
-          >
-            {showWorkers ? '✓ Worker Density Visible' : 'Workers Hidden'}
-          </button>
-        </div>
+  if (inline) {
+    return mapPanelContent;
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 select-none font-mono">
+      <div className="lg:col-span-8">
+        {mapPanelContent}
       </div>
 
-      {/* Main Map Canvas and Detail Drawer */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      {/* Right: Street View Surveillance / CCTV Panel (4 cols) */}
+      <div className="lg:col-span-4 flex flex-col space-y-6">
         
-        {/* SVG Blueprint Canvas (8 Cols) */}
-        <div className="lg:col-span-8 bg-[#04070e] rounded-xl border border-slate-800 p-3 relative overflow-hidden flex flex-col justify-between shadow-inner min-h-[420px]">
-          
-          {/* Blueprint Compass & Scale Meta */}
-          <div className="flex justify-between items-center text-[9px] text-slate-500 z-10">
-            <div className="flex items-center space-x-1.5 text-sky-400 font-bold">
-              <Compass className="h-3.5 w-3.5" />
-              <span>FACILITY LAYOUT (EXPLOSIVES REGULATORY GRID)</span>
-            </div>
-            <span>SCALE: 1:500 MESH</span>
-          </div>
+        {/* Street View Surveillance Panel */}
+        <div className="bg-surveillance-panel border border-surveillance-border rounded-lg p-5 flex flex-col h-[calc(100vh-14rem)] min-h-[500px]">
+          <h4 className="text-xs font-bold font-mono tracking-widest text-surveillance-textMuted uppercase border-b border-surveillance-border pb-3 mb-4 flex items-center space-x-1.5">
+            <MapPin className="h-4 w-4 text-surveillance-accent" />
+            <span>STREET VIEW SURVEILLANCE</span>
+          </h4>
 
-          {/* SVG Map Layout */}
-          <svg className="w-full h-80 my-2" viewBox="0 0 100 95" preserveAspectRatio="none">
-            <defs>
-              <pattern id="gridPattern" width="5" height="5" patternUnits="userSpaceOnUse">
-                <path d="M 5 0 L 0 0 0 5" fill="none" stroke="#1e2d4a" strokeWidth="0.2" opacity="0.6"/>
-              </pattern>
-            </defs>
+          {selectedCam ? (
+            <div className="flex-1 flex flex-col space-y-4">
+              
+              {/* Telemetry metadata */}
+              <div className="bg-surveillance-header border border-surveillance-border p-3 rounded text-3xs space-y-1">
+                <p className="text-white font-bold uppercase">{selectedCam.name}</p>
+                <p className="text-surveillance-textMuted">{selectedCam.desc}</p>
+                <p className="text-surveillance-accent uppercase pt-1 border-t border-surveillance-border/50">
+                  COORDINATES: {selectedCam.x.toFixed(4)}N, {selectedCam.y.toFixed(4)}E
+                </p>
+              </div>
 
-            {/* Background Grid */}
-            <rect width="100" height="95" fill="url(#gridPattern)" />
+              {/* Viewport Simulation */}
+              <div className="relative flex-1 bg-black border border-surveillance-border rounded overflow-hidden flex items-center justify-center">
+                
+                {/* CRT overlay */}
+                <div className="absolute inset-0 surveillance-monitor pointer-events-none z-10"></div>
+                
+                {/* Grid Overlay */}
+                <div className="absolute inset-0 surveillance-grid opacity-10"></div>
 
-            {/* Perimeter Boundary & Safe Buffer Line */}
-            <rect x="5" y="5" width="90" height="85" fill="none" stroke="#334155" strokeWidth="0.5" strokeDasharray="2, 2" />
-            <text x="7" y="9" fill="#64748b" fontSize="2.0" fontFamily="monospace">SAFE EVACUATION BUFFER BOUNDARY</text>
-
-            {/* Evacuation Route Path */}
-            <path d="M 10 90 L 10 10 L 90 10" fill="none" stroke="#10b981" strokeWidth="0.4" strokeDasharray="1, 1" opacity="0.7" />
-
-            {/* Render Factory Processing Zones */}
-            {factoryZones.map((zone) => {
-              const isSelected = selectedZone?.id === zone.id;
-              return (
-                <g 
-                  key={zone.id} 
-                  onClick={() => setSelectedZone(zone)}
-                  className="cursor-pointer group"
+                {/* Animated Camera Sweep Canvas */}
+                <div 
+                  className="w-full h-full p-4 flex flex-col justify-between items-center text-center font-mono transition-transform duration-500 ease-out relative"
+                  style={{
+                    transform: `rotate(${ptzState.pan * 0.05}deg) translateY(${ptzState.tilt * 0.5}px) scale(${ptzState.zoom * 0.2 + 0.8})`
+                  }}
                 >
-                  {/* Zone Block */}
-                  <rect
-                    x={zone.x}
-                    y={zone.y}
-                    width={zone.width}
-                    height={zone.height}
-                    rx="1.5"
-                    fill={getZoneFill(zone.risk)}
-                    stroke={isSelected ? '#ffffff' : getZoneStroke(zone.risk)}
-                    strokeWidth={isSelected ? '0.8' : '0.4'}
-                    className="transition-all hover:opacity-80"
-                  />
-
-                  {/* Zone Label */}
-                  <text
-                    x={zone.x + 1.5}
-                    y={zone.y + 4.5}
-                    fill="#ffffff"
-                    fontSize="2.2"
-                    fontWeight="bold"
-                    fontFamily="monospace"
-                  >
-                    {zone.short}
-                  </text>
-
-                  {/* Camera Marker (External Safe Post) */}
-                  <circle
-                    cx={zone.x + zone.width - 2.5}
-                    cy={zone.y + 2.5}
-                    r="1.4"
-                    fill="#0ea5e9"
-                    stroke="#ffffff"
-                    strokeWidth="0.3"
-                  />
-                  <text
-                    x={zone.x + zone.width - 2.5}
-                    y={zone.y + 3.0}
-                    fill="#000000"
-                    fontSize="1.2"
-                    fontWeight="black"
-                    textAnchor="middle"
-                  >
-                    C
-                  </text>
-
-                  {/* Telemetry Overlays inside block */}
-                  {showSensors && (
-                    <text
-                      x={zone.x + 1.5}
-                      y={zone.y + 9}
-                      fill={zone.temp >= 40 ? '#ef4444' : zone.temp >= 35 ? '#f59e0b' : '#38bdf8'}
-                      fontSize="1.9"
-                      fontWeight="bold"
-                      fontFamily="monospace"
-                    >
-                      {zone.temp}°C | {zone.gas}PPM
-                    </text>
-                  )}
-
-                  {showWorkers && (
-                    <text
-                      x={zone.x + 1.5}
-                      y={zone.y + 13}
-                      fill="#10b981"
-                      fontSize="1.8"
-                      fontFamily="monospace"
-                    >
-                      👥 {zone.workers} WORKERS
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-
-            {/* External Supervisor Control Room Marker */}
-            <rect x="70" y="80" width="22" height="10" rx="1" fill="#0f172a" stroke="#10b981" strokeWidth="0.6" />
-            <text x="72" y="86" fill="#10b981" fontSize="2.2" fontWeight="bold" fontFamily="monospace">
-              EXTERNAL CONTROL POST
-            </text>
-          </svg>
-
-          {/* Blueprint Legend */}
-          <div className="flex flex-wrap items-center justify-between text-[8px] text-slate-400 border-t border-slate-800 pt-2 gap-2">
-            <div className="flex items-center space-x-3">
-              <span className="flex items-center space-x-1">
-                <span className="w-2.5 h-2.5 rounded bg-sky-500/30 border border-sky-500"></span>
-                <span>Normal Range</span>
-              </span>
-              <span className="flex items-center space-x-1">
-                <span className="w-2.5 h-2.5 rounded bg-amber-500/40 border border-amber-500"></span>
-                <span>Thermal Warning</span>
-              </span>
-              <span className="flex items-center space-x-1">
-                <span className="w-2.5 h-2.5 rounded bg-red-500/50 border border-red-500 animate-pulse"></span>
-                <span>Critical Hazard Area</span>
-              </span>
-            </div>
-            <span className="text-slate-500">Click any zone to inspect camera telemetry</span>
-          </div>
-
-        </div>
-
-        {/* Selected Zone Deep Dive Drawer (4 Cols) */}
-        <div className="lg:col-span-4 bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="text-2xs font-bold text-sky-400">ZONE INSPECTOR</span>
-              {selectedZone && (
-                <span className={`text-[9px] font-black px-2 py-0.5 rounded border ${
-                  selectedZone.risk === 'Critical' ? 'bg-red-500/15 text-red-400 border-red-500/40' :
-                  selectedZone.risk === 'Warning' ? 'bg-amber-500/15 text-amber-400 border-amber-500/40' :
-                  'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
-                }`}>
-                  {selectedZone.risk.toUpperCase()}
-                </span>
-              )}
-            </div>
-
-            {selectedZone ? (
-              <div className="space-y-3 mt-3">
-                <div>
-                  <h3 className="text-sm font-black text-white">{selectedZone.name}</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{selectedZone.desc}</p>
-                </div>
-
-                {/* Camera Link */}
-                <div className="p-2.5 bg-slate-900 rounded border border-slate-800 flex items-center justify-between text-2xs">
-                  <span className="text-slate-400">Assigned Camera:</span>
-                  <span className="font-bold text-sky-400">{selectedZone.cam} (External Obs)</span>
-                </div>
-
-                {/* Telemetry Metrics */}
-                <div className="grid grid-cols-2 gap-2 text-2xs">
-                  <div className="p-2 bg-slate-900 rounded border border-slate-800">
-                    <span className="text-slate-500 block">Ambient Temp:</span>
-                    <span className={`font-black text-sm ${selectedZone.temp >= 40 ? 'text-red-400' : 'text-slate-200'}`}>
-                      {selectedZone.temp}°C
-                    </span>
+                  {/* Grid Crosshair */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
+                    <div className="w-8 h-8 border border-white/20 rounded-full flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-white/40 rounded-full"></div>
+                    </div>
                   </div>
-                  <div className="p-2 bg-slate-900 rounded border border-slate-800">
-                    <span className="text-slate-500 block">Volatile Gas:</span>
-                    <span className={`font-black text-sm ${selectedZone.gas >= 500 ? 'text-red-400' : 'text-slate-200'}`}>
-                      {selectedZone.gas} PPM
-                    </span>
-                  </div>
-                  <div className="p-2 bg-slate-900 rounded border border-slate-800">
-                    <span className="text-slate-500 block">Workers Active:</span>
-                    <span className="font-black text-sm text-white">
-                      {selectedZone.workers} Persons
-                    </span>
-                  </div>
-                  <div className="p-2 bg-slate-900 rounded border border-slate-800">
-                    <span className="text-slate-500 block">Exhaust Relay:</span>
-                    <span className="font-black text-sm text-emerald-400">
-                      ARMED
-                    </span>
-                  </div>
-                </div>
 
-                {/* Recommended Guidance */}
-                <div className="p-2.5 bg-sky-950/40 border border-sky-500/20 rounded text-[10px] text-slate-300">
-                  <span className="font-bold text-sky-400 block mb-0.5">Observation Protocol:</span>
-                  Maintain safe separation from compounding areas. Continuous thermal scan active.
+                  {/* Telemetry logs on stream */}
+                  <div className="w-full flex justify-between text-4xs text-slate-400">
+                    <span>PAN: {ptzState.pan.toFixed(1)}°</span>
+                    <span>TILT: {ptzState.tilt.toFixed(1)}°</span>
+                    <span>ZOOM: {ptzState.zoom.toFixed(1)}x</span>
+                  </div>
+
+                  <div className="my-auto space-y-2">
+                    <Truck className={`h-10 w-10 mx-auto text-surveillance-accent ${ptzState.zoom > 3 ? 'scale-125' : ''} transition-all duration-300`} />
+                    <p className="text-2xs font-bold text-white uppercase tracking-wider">STREET LEVEL FEED ACTIVE</p>
+                    <p className="text-4xs text-surveillance-textMuted uppercase">PANNING SENSOR TELEMETRY LOCKED</p>
+                  </div>
+
+                  <div className="w-full text-4xs text-surveillance-success font-bold flex justify-between">
+                    <span>FPS: 30.0</span>
+                    <span>SECURE NODE 1080P</span>
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div className="py-12 text-center text-slate-500 text-2xs">
-                <MapPin className="h-8 w-8 text-slate-700 mx-auto mb-2" />
-                <p>Click any processing zone on the blueprint to view real-time telemetry and camera feeds.</p>
+
+              {/* PTZ Slider Buttons */}
+              <div className="space-y-2.5 bg-surveillance-header border border-surveillance-border p-3.5 rounded">
+                <p className="text-3xs text-surveillance-textMuted uppercase font-bold tracking-widest flex items-center space-x-1">
+                  <Sliders className="h-3 w-3" />
+                  <span>PTZ MOTOR TELEMETRY CONTROLS</span>
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-3xs font-bold">
+                  <button 
+                    type="button"
+                    onClick={() => adjustPTZ('pan', -10)} 
+                    className="py-1 bg-surveillance-panel hover:bg-surveillance-border border border-surveillance-border text-white rounded cursor-pointer transition-colors"
+                  >
+                    PAN LEFT (&larr;)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => adjustPTZ('pan', 10)} 
+                    className="py-1 bg-surveillance-panel hover:bg-surveillance-border border border-surveillance-border text-white rounded cursor-pointer transition-colors"
+                  >
+                    PAN RIGHT (&rarr;)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => adjustPTZ('tilt', -5)} 
+                    className="py-1 bg-surveillance-panel hover:bg-surveillance-border border border-surveillance-border text-white rounded cursor-pointer transition-colors"
+                  >
+                    TILT DOWN (&darr;)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => adjustPTZ('tilt', 5)} 
+                    className="py-1 bg-surveillance-panel hover:bg-surveillance-border border border-surveillance-border text-white rounded cursor-pointer transition-colors"
+                  >
+                    TILT UP (&uarr;)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => adjustPTZ('zoom', 0.5)} 
+                    className="py-1 bg-surveillance-accent text-white font-bold hover:bg-sky-600 rounded cursor-pointer transition-colors"
+                  >
+                    ZOOM IN (+)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => adjustPTZ('zoom', -0.5)} 
+                    className="py-1 bg-surveillance-panel hover:bg-surveillance-border border border-surveillance-border text-white rounded cursor-pointer transition-colors"
+                  >
+                    ZOOM OUT (-)
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
 
-          <div className="border-t border-slate-800 pt-2 text-[9px] text-slate-500">
-            Node Sync: Synchronized with 16 external telemetry channels.
-          </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center text-surveillance-textMuted py-16">
+              <Compass className="h-10 w-10 text-surveillance-textMuted/30 mb-2.5 animate-pulse" />
+              <p className="text-xs font-bold uppercase">NO ACTIVE STREET CAMERA LOCKED</p>
+              <p className="text-4xs mt-1 leading-normal uppercase">
+                Click any camera marker on the city GIS radar map to lock telemetry and stream live street views.
+              </p>
+            </div>
+          )}
+
         </div>
-
       </div>
-
     </div>
   );
 }

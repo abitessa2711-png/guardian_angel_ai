@@ -1,32 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { SimulatedCCTVStream } from './CCTVGrid';
-import { 
-  Camera, 
-  ShieldAlert, 
-  Award, 
-  FileText, 
-  AlertOctagon, 
-  Volume2, 
-  Shield, 
-  Play, 
-  Square, 
-  Circle, 
-  VideoOff, 
-  Eye, 
-  Truck, 
-  CheckSquare, 
-  ShieldCheck,
-  HardHat,
-  Thermometer,
-  Wind,
-  Users,
-  Flame,
-  Activity
-} from 'lucide-react';
+import { Camera, ShieldAlert, Award, FileText, AlertOctagon, Volume2, Shield, Play, Square, Circle, VideoOff, Eye, Truck, CheckSquare, ShieldCheck } from 'lucide-react';
 
 export default function AreaFocusView({ 
-  cameras = [], 
+  cameras, 
   isDemoActive = false, 
   demoStep = 0, 
   demoCameraId = null,
@@ -38,85 +16,172 @@ export default function AreaFocusView({
 }) {
   const { language, t } = useLanguage();
 
+  // Load the list of 16 cameras (including dynamic mocks)
   const displayCameras = [...cameras];
   const mockNames = [
-    "CAM-01 RAW_MATERIAL_STORE",
-    "CAM-02 MIXING_SHED_01_OUTER",
-    "CAM-03 MIXING_SHED_02_OUTER",
-    "CAM-04 CHEMICAL_GRINDING_GATE",
-    "CAM-05 DRYING_GROUNDS_NORTH",
-    "CAM-06 DRYING_GROUNDS_SOUTH",
-    "CAM-07 FUSE_INSERTION_PORCH",
-    "CAM-08 PAPER_CASING_UNIT",
-    "CAM-09 SPARKLER_SLURRY_SHED",
-    "CAM-10 FILLING_ASSEMBLY_LINE",
-    "CAM-11 PACKAGING_BOXING_HALL",
-    "CAM-12 FINISHED_MAGAZINE_BUNKER",
-    "CAM-13 WASTE_NEUTRALIZATION_PIT",
-    "CAM-14 FIRE_HYDRANT_PUMP_HOUSE",
-    "CAM-15 CONTROL_ROOM_PERIMETER",
-    "CAM-16 EMERGENCY_BUFFER_GATE"
+    "CCTV-01 CHATRAM_BUS_STAND",
+    "CCTV-02 CENTRAL_BUS_STAND",
+    "CCTV-03 RAILWAY_JUNCTION",
+    "CCTV-04 ROCKFORT_TEMPLE_ROAD",
+    "CCTV-05 SRIRANGAM_TEMPLE",
+    "CCTV-06 NIT_TRICHY",
+    "CCTV-07 LALGUDI_SUBWAY",
+    "CCTV-08 THILLAI_NAGAR",
+    "CCTV-09 WORAIYUR_BAZAAR",
+    "CCTV-10 KK_NAGAR_JNC",
+    "CCTV-11 THENNUR_CROSS",
+    "CCTV-12 MAIN_GUARD_GATE",
+    "CCTV-13 ROCKFORT_BAZAAR",
+    "CCTV-14 GANDHI_MARKET",
+    "CCTV-15 CHINTAMANI_JNC",
+    "CCTV-16 PALAKKARAI_CROSS"
   ];
   const mockLocations = [
-    "Raw Chemical & Nitrate Store Outer Gate",
-    "Chemical Mixing Room 1 (External Observation)",
-    "Chemical Mixing Room 2 (External Observation)",
-    "Pulverizer & Grinding Shed Outer Perch",
-    "Open Drying Yard North (Solar Radiation)",
-    "Open Drying Yard South (Perimeter Watch)",
-    "Fuse Insertion & Capping Porch",
-    "Paper Tube Winding & Casing Section",
-    "Sparkler Dipping & Slurry Bath Outer",
-    "Final Firework Assembly & Filling Line",
-    "Secondary Packaging & Box Storage",
-    "Explosive Magazine Storage Vault Entry",
-    "Chemical Residue Neutralization Pit",
-    "Industrial Fire Water Reserve & Pump House",
-    "External Safety Supervisor Control Post",
-    "Factory Boundary & Evacuation Path"
+    "Chatram Bus Stand Outer Gates",
+    "Central Bus Terminal Platform 1 Gate",
+    "Trichy Railway Junction Entrance",
+    "Rockfort Temple Bazaar Street",
+    "Srirangam Temple Entrance",
+    "NIT Trichy Highway Gate",
+    "Lalgudi Junction Subway",
+    "Thillai Nagar Main Cross",
+    "Woraiyur Bazaar Road",
+    "KK Nagar Circle Road",
+    "Thennur High Road Crossing",
+    "Main Guard Gate Entrance",
+    "Rockfort Shopping Arch",
+    "Gandhi Market Wholesale Gate",
+    "Chintamani Junction",
+    "Palakkarai Cross Road"
   ];
 
   while (displayCameras.length < 16) {
     const idx = displayCameras.length;
     displayCameras.push({
       id: 1000 + idx,
-      name: mockNames[idx] || `CAM-${idx + 1} SAFE_NODE`,
-      location: mockLocations[idx] || `Observation Zone ${idx + 1}`,
+      name: mockNames[idx] || `CCTV-${idx + 1} MOCK_NODE`,
+      location: mockLocations[idx] || `Location ${idx + 1}`,
       rtsp_url: `rtsp://192.168.1.${101 + idx}/stream1`,
-      status: idx === 15 ? 'Offline' : 'Active',
-      latitude: 9.4532 + (idx * 0.0006),
-      longitude: 77.8021 + (idx * 0.0007)
+      status: idx === 5 || idx === 15 ? 'Offline' : 'Active', // Mock two offline nodes
+      latitude: 10.79 + (Math.random() - 0.5) * 0.1,
+      longitude: 78.69 + (Math.random() - 0.5) * 0.1
     });
   }
 
-  const [selectedCamId, setSelectedCamId] = useState(4);
+  const [selectedCamId, setSelectedCamId] = useState(displayCameras[0]?.id || 1);
   const activeCam = displayCameras.find(c => c.id === selectedCamId) || displayCameras[0];
+
+  // Derived state to check if the current selected camera is the alert/demo target
   const isDemoTarget = isDemoActive && (activeCam.id === demoCameraId || activeCam.id === 9999 || (activeCam.id === 4 && demoCameraId === 4));
 
-  const [fps, setFps] = useState(24.5);
-  const [latency, setLatency] = useState(38);
-  const [logs, setLogs] = useState([
-    '[11:46:12] Initialized AI Safety Vision Engine - Safe External Camera Feed',
-    '[11:46:15] Optical keypoint pose detector model locked (YOLOv8-Pose)',
-    '[11:46:18] Telemetry sync established: Ambient Temp 33.2°C, Gas 120 PPM'
-  ]);
+  // Simulating live object detections
+  const [detections, setDetections] = useState({
+    person: true,
+    vehicle: true,
+    face: true,
+    weapon: false,
+    fight: false,
+    smoke: false,
+    fire: false,
+    abandoned: false,
+    confidence: 94
+  });
 
+  // Logs state specific to the active camera
+  const [logs, setLogs] = useState([]);
+
+  // Adjust detections and logs based on selected camera and demo steps
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFps(+(23.5 + Math.random() * 1.5).toFixed(1));
-      setLatency(Math.floor(32 + Math.random() * 12));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
+    if (activeCam.status === 'Offline') {
+      setDetections({
+        person: false,
+        vehicle: false,
+        face: false,
+        weapon: false,
+        fight: false,
+        smoke: false,
+        fire: false,
+        abandoned: false,
+        confidence: 0
+      });
+      setLogs([
+        `[${new Date().toLocaleTimeString()}] [WARN] NODE CONNECTION LOST. RETRYING IN 5S...`,
+        `[${new Date().toLocaleTimeString()}] [ERROR] RTSP STREAM SOURCE REFUSED ACCESS.`
+      ]);
+      return;
+    }
 
+    if (isDemoTarget) {
+      // Demo step transitions
+      const isFight = demoStep >= 9;
+      const isScream = demoStep >= 7;
+      const isFollow = demoStep >= 3;
+      const confidence = demoStep === 0 ? 94 : 85 + Math.floor(Math.random() * 11);
+
+      setDetections({
+        person: true,
+        vehicle: demoStep < 3,
+        face: true,
+        weapon: false,
+        fight: isFight,
+        smoke: false,
+        fire: false,
+        abandoned: false,
+        confidence
+      });
+
+      // Populate console logs based on demo step
+      const demoLogs = [
+        `[${new Date().toLocaleTimeString()}] [INFO] AI COGNITIVE CORE INITIALIZED FOR AREA FOCUS.`,
+        `[${new Date().toLocaleTimeString()}] [ANALYSIS] YOLO KEYPOINT KEY-PATH EXTENDED.`
+      ];
+
+      if (isFollow) {
+        demoLogs.unshift(`[${new Date().toLocaleTimeString()}] [WARN] SPATIO-TEMPORAL PROXIMITY ALERT: Suspect ID_02 within 1.0m of Target ID_01.`);
+      }
+      if (isScream) {
+        demoLogs.unshift(`[${new Date().toLocaleTimeString()}] [CRITICAL] ACOUSTIC LOG: Scream amplitude spike recorded (89 dB).`);
+      }
+      if (isFight) {
+        demoLogs.unshift(`[${new Date().toLocaleTimeString()}] [EMERGENCY] POSE ANALYSIS: Physical fight/struggle interaction vector locked.`);
+      }
+      if (demoStep >= 10) {
+        demoLogs.unshift(`[${new Date().toLocaleTimeString()}] [DISPATCH] ALARM BROADCASTED: Nearest Patrol Unit dispatched.`);
+      }
+
+      setLogs(demoLogs);
+    } else {
+      // Standard active camera simulation
+      setDetections({
+        person: true,
+        vehicle: !activeCam.name.includes('TEMPLE'),
+        face: true,
+        weapon: false,
+        fight: false,
+        smoke: false,
+        fire: false,
+        abandoned: false,
+        confidence: 90 + Math.floor(Math.random() * 7)
+      });
+      setLogs([
+        `[${new Date().toLocaleTimeString()}] [INFO] Stream synchronized at 30 FPS.`,
+        `[${new Date().toLocaleTimeString()}] [INFO] Bounding box locks: PERSON (1), FACE (1).`,
+        `[${new Date().toLocaleTimeString()}] [INFO] Environmental sensor index clear.`
+      ]);
+    }
+  }, [selectedCamId, demoStep, isDemoActive, isDemoTarget]);
+
+  // Command handlers
   const handleResolveAlert = async (alertId) => {
     try {
-      if (!apiBase) return;
-      await fetch(`${apiBase}/alerts/${alertId}/resolve`, {
+      const response = await fetch(`${apiBase}/alerts/${alertId}/resolve`, {
         method: 'POST',
-        headers: getAuthHeaders ? getAuthHeaders() : {}
+        headers: getAuthHeaders()
       });
-      if (loadDashboardData) loadDashboardData();
+      if (response.ok) {
+        loadDashboardData();
+        setLogs(prev => [`[${new Date().toLocaleTimeString()}] [INFO] ALERT RESOLVED BY OPERATOR`, ...prev]);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -124,41 +189,43 @@ export default function AreaFocusView({
 
   const handleEscalateAlert = async (alertId) => {
     try {
-      if (!apiBase) return;
-      await fetch(`${apiBase}/alerts/${alertId}/escalate`, {
+      const response = await fetch(`${apiBase}/alerts/${alertId}/escalate`, {
         method: 'POST',
-        headers: getAuthHeaders ? getAuthHeaders() : {}
+        headers: getAuthHeaders()
       });
-      if (loadDashboardData) loadDashboardData();
+      if (response.ok) {
+        loadDashboardData();
+        setLogs(prev => [`[${new Date().toLocaleTimeString()}] [WARN] ALERT ESCALATED TO INCIDENT STATUS`, ...prev]);
+      }
     } catch (err) {
       console.error(err);
     }
   };
 
+  // Find alerts relating to the active camera
   const activeAlert = displayAlerts.find(a => a.camera_id === activeCam.id && a.status !== 'Resolved');
 
   return (
-    <div className="space-y-4 font-mono select-none">
+    <div className="space-y-6 font-mono text-white select-none">
       
       {/* Selector Header */}
-      <div className="bg-surveillance-panel border border-surveillance-border rounded-lg p-4 flex flex-col md:flex-row justify-between items-center gap-3 shadow-cmd">
+      <div className="bg-surveillance-panel border border-surveillance-border rounded-lg p-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h3 className="text-sm font-bold tracking-wider text-white uppercase flex items-center space-x-2">
-            <Eye className="h-5 w-5 text-sky-400" />
-            <span>{t('ai_vision')} & Zone Focus Analyzer</span>
+          <h3 className="text-xs font-bold tracking-widest text-surveillance-accent uppercase">
+            {t('area_focus')}
           </h3>
-          <p className="text-2xs text-slate-400 mt-0.5">
-            Granular Worker Pose Estimation, Antistatic PPE Verification & Thermal Hotspot Scanner
+          <p className="text-3xs text-surveillance-textMuted mt-0.5">
+            {t('focus_analyzer')}
           </p>
         </div>
         
         {/* Dropdown Selector */}
-        <div className="flex items-center space-x-2 text-2xs">
-          <span className="text-slate-400 uppercase">{t('selected_feed')}:</span>
+        <div className="flex items-center space-x-2 text-xs">
+          <span className="text-surveillance-textMuted uppercase">{t('selected_feed')}:</span>
           <select 
             value={selectedCamId} 
             onChange={(e) => setSelectedCamId(parseInt(e.target.value))}
-            className="bg-slate-900 border border-slate-700 text-white px-3 py-1.5 rounded focus:outline-none focus:border-sky-400 text-2xs cursor-pointer font-bold"
+            className="bg-surveillance-header border border-surveillance-border text-white px-3 py-2 rounded focus:outline-none focus:border-surveillance-accent text-xs"
           >
             {displayCameras.map((c) => (
               <option key={c.id} value={c.id}>
@@ -169,35 +236,34 @@ export default function AreaFocusView({
         </div>
       </div>
 
-      {/* Main 3-Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Column: Camera Node Selector (3 cols) */}
-        <div className="lg:col-span-3 bg-surveillance-panel border border-surveillance-border rounded-lg p-3.5 flex flex-col h-[560px] overflow-hidden shadow-cmd">
-          <p className="text-2xs text-slate-400 uppercase font-bold border-b border-surveillance-border pb-2 mb-2">
+        {/* Left selector menu (3 cols) */}
+        <div className="lg:col-span-3 bg-surveillance-panel border border-surveillance-border rounded-lg p-4 flex flex-col h-[520px] overflow-hidden">
+          <p className="text-4xs text-surveillance-textMuted uppercase font-bold border-b border-surveillance-border/50 pb-2 mb-3">
             {t('select_camera')}
           </p>
-          <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
             {displayCameras.map((c) => {
               const isActive = c.id === selectedCamId;
-              const isAlerting = isDemoActive && c.id === 4 && demoStep >= 5;
+              const isAlerting = isDemoActive && c.id === 4 && demoStep >= 10;
               return (
                 <button
                   key={c.id}
                   onClick={() => setSelectedCamId(c.id)}
-                  className={`w-full text-left px-2.5 py-2 rounded border transition-all cursor-pointer flex flex-col ${
+                  className={`w-full text-left px-3 py-2 rounded border transition-all cursor-pointer flex flex-col ${
                     isActive 
-                      ? 'bg-sky-500/15 border-sky-400 text-sky-400 font-bold shadow-sm' 
+                      ? 'bg-surveillance-accent/15 border-surveillance-accent shadow-[0_0_8px_rgba(0,255,102,0.15)]' 
                       : isAlerting
-                      ? 'border-red-500 bg-red-500/10 animate-pulse text-red-400'
-                      : 'border-slate-800 hover:border-slate-700 text-slate-300'
+                      ? 'border-surveillance-danger bg-surveillance-danger/10 animate-pulse text-red-400'
+                      : 'border-surveillance-border/50 hover:border-white text-slate-300'
                   }`}
                 >
-                  <span className="text-[9px] font-bold block truncate uppercase">{c.name}</span>
-                  <span className="text-[7px] text-slate-400 mt-0.5 truncate uppercase">{c.location}</span>
+                  <span className="text-[9px] font-bold block truncate uppercase">{c.name.replace('CCTV-', 'CAM ')}</span>
+                  <span className="text-[7px] text-surveillance-textMuted mt-0.5 truncate uppercase">{c.location}</span>
                   <span className="flex items-center space-x-1 mt-1">
-                    <span className={`w-1.5 h-1.5 rounded-full ${c.status === 'Offline' ? 'bg-red-500' : 'bg-emerald-400 animate-pulse'}`}></span>
-                    <span className="text-[7px] text-slate-400 uppercase font-mono">
+                    <span className={`w-1.5 h-1.5 rounded-full ${c.status === 'Offline' ? 'bg-red-500' : 'bg-surveillance-accent animate-pulse'}`}></span>
+                    <span className="text-[6px] text-surveillance-textMuted uppercase">
                       {c.status === 'Offline' ? t('offline') : t('active_caps')}
                     </span>
                   </span>
@@ -207,21 +273,21 @@ export default function AreaFocusView({
           </div>
         </div>
 
-        {/* Center: Large CCTV Stream (6 cols) */}
-        <div className="lg:col-span-6 flex flex-col space-y-3">
+        {/* Center: Large Live View (6 cols) */}
+        <div className="lg:col-span-6 flex flex-col space-y-4">
           
           <div className={`relative aspect-video bg-black rounded-lg overflow-hidden border-2 flex items-center justify-center transition-all ${
             activeCam.status === 'Offline'
               ? 'border-red-500/30'
               : isDemoTarget
-              ? 'border-red-500 shadow-glow-red animate-pulse-red'
-              : 'border-sky-500/80 shadow-glow-cyan'
+              ? 'border-surveillance-danger shadow-glow-red animate-pulse-red'
+              : 'border-surveillance-accent shadow-glow-cyan'
           }`}>
             {activeCam.status === 'Offline' ? (
               <div className="text-center font-mono text-xs text-red-500/60 p-6">
                 <VideoOff className="h-12 w-12 mx-auto mb-3 text-red-500/40" />
                 <p className="font-bold uppercase">{t('node_status_offline')}</p>
-                <p className="text-2xs uppercase text-slate-500 mt-1">{activeCam.location}</p>
+                <p className="text-3xs uppercase text-slate-500 mt-1">{activeCam.location}</p>
               </div>
             ) : (
               <div className="w-full h-full p-0.5 relative">
@@ -230,103 +296,185 @@ export default function AreaFocusView({
             )}
           </div>
 
-          {/* Quick Telemetry Bar */}
-          <div className="bg-surveillance-panel border border-surveillance-border p-3 rounded-lg flex justify-between items-center text-2xs shadow-cmd">
-            <div>
-              <p className="font-bold text-white uppercase">{activeCam.name}</p>
-              <p className="text-slate-400 text-[10px] mt-0.5">{activeCam.location}</p>
+          {/* Quick Actions Panel */}
+          {activeCam.status === 'Active' && (
+            <div className="bg-surveillance-panel border border-surveillance-border p-3.5 rounded-lg flex justify-between items-center font-sans">
+              <div>
+                <p className="text-2xs font-bold text-white uppercase">{t('focused_feed')}</p>
+                <p className="text-3xs text-surveillance-textMuted uppercase mt-0.5 font-mono">{activeCam.location}</p>
+              </div>
+              
+              <div className="flex space-x-2 font-mono">
+                {activeAlert && activeAlert.status === 'New' && (
+                  <>
+                    <button 
+                      onClick={() => handleResolveAlert(activeAlert.id)}
+                      className="px-3 py-1.5 bg-emerald-500 text-black font-bold hover:bg-emerald-600 rounded cursor-pointer transition-all text-3xs"
+                    >
+                      {t('resolve').toUpperCase()}
+                    </button>
+                    <button 
+                      onClick={() => handleEscalateAlert(activeAlert.id)}
+                      className="px-3 py-1.5 bg-surveillance-danger text-white font-bold hover:bg-red-600 rounded cursor-pointer transition-all text-3xs shadow-glow-red"
+                    >
+                      {t('escalate').toUpperCase()}
+                    </button>
+                  </>
+                )}
+                {activeAlert && activeAlert.status === 'Escalated' && (
+                  <span className="text-surveillance-danger font-black text-3xs border border-surveillance-danger/30 bg-surveillance-danger/10 px-3 py-1.5 rounded animate-pulse uppercase">
+                    {t('escalated')}
+                  </span>
+                )}
+                {!activeAlert && (
+                  <span className="text-surveillance-accent font-black text-3xs border border-surveillance-accent/30 bg-surveillance-accent/10 px-3 py-1.5 rounded uppercase">
+                    {t('secure')}
+                  </span>
+                )}
+              </div>
             </div>
-            
-            <div className="flex items-center space-x-2 text-[10px]">
-              <span className="text-slate-400">FPS: <strong className="text-emerald-400">{fps}</strong></span>
-              <span className="text-slate-400 border-l border-slate-700 pl-2">Latency: <strong className="text-sky-400">{latency}ms</strong></span>
-            </div>
-          </div>
+          )}
 
-          {/* Live Incident & Threat Console Logs */}
-          <div className="bg-surveillance-panel border border-surveillance-border rounded-lg p-3 flex-1 h-[140px] flex flex-col overflow-hidden shadow-cmd">
-            <p className="text-[10px] text-slate-400 uppercase font-bold border-b border-surveillance-border pb-1 mb-1.5 shrink-0 flex items-center justify-between">
-              <span>{t('threat_console')}</span>
-              <span className="text-emerald-400">SYNC ACTIVE</span>
+          {/* Live Console Logs */}
+          <div className="bg-surveillance-panel border border-surveillance-border rounded-lg p-4 flex-1 h-[140px] flex flex-col overflow-hidden">
+            <p className="text-4xs text-surveillance-textMuted uppercase font-bold border-b border-surveillance-border/50 pb-1.5 mb-2 shrink-0">
+              {t('threat_console')}
             </p>
-            <div className="flex-1 overflow-y-auto space-y-1 text-[10px] font-mono pr-1 text-slate-300">
-              {logs.map((log, idx) => (
-                <p key={idx} className="text-slate-300">{log}</p>
-              ))}
+            <div className="flex-1 overflow-y-auto space-y-1 text-3xs leading-relaxed font-mono pr-1 text-slate-300">
+              {logs.map((log, idx) => {
+                let colorClass = 'text-slate-300';
+                if (log.includes('[ERROR]') || log.includes('[CRITICAL]') || log.includes('[EMERGENCY]')) {
+                  colorClass = 'text-red-400 font-bold';
+                } else if (log.includes('[WARN]')) {
+                  colorClass = 'text-amber-400';
+                } else if (log.includes('[DISPATCH]')) {
+                  colorClass = 'text-sky-400 font-black animate-pulse';
+                } else if (log.includes('[INFO]')) {
+                  colorClass = 'text-surveillance-accent';
+                }
+                return (
+                  <div key={idx} className={colorClass}>
+                    {log}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
         </div>
 
-        {/* Right Column: AI Cognitive Detection Status (3 cols) */}
-        <div className="lg:col-span-3 bg-surveillance-panel border border-surveillance-border rounded-lg p-4 flex flex-col justify-between shadow-cmd space-y-3">
-          <div>
-            <h4 className="text-xs font-bold text-sky-400 uppercase border-b border-surveillance-border pb-2 mb-3">
-              {t('ai_object_detection_status')}
-            </h4>
-
-            <div className="space-y-2.5 text-2xs">
+        {/* Right Panel: AI Detections Status (3 cols) */}
+        <div className="lg:col-span-3 flex flex-col space-y-4">
+          
+          <div className="bg-surveillance-panel border border-surveillance-border rounded-lg p-4 space-y-3.5 h-[520px] flex flex-col justify-between">
+            <div className="space-y-3.5">
+              <p className="text-4xs text-surveillance-textMuted uppercase font-bold border-b border-surveillance-border/50 pb-2">
+                {t('ai_object_detection_status')}
+              </p>
               
-              {/* 1. Worker Detection */}
-              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-emerald-400" />
-                  <span className="text-slate-300">{t('person_detection')}</span>
+              <div className="space-y-2 text-3xs">
+                
+                {/* Person */}
+                <div className="flex justify-between items-center bg-surveillance-header border border-surveillance-border p-2 rounded">
+                  <span className="font-bold text-[8px] uppercase">{t('person_detection')}</span>
+                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold border ${
+                    detections.person 
+                      ? 'bg-surveillance-success/15 border-surveillance-success text-surveillance-success' 
+                      : 'bg-surveillance-panel/60 border-surveillance-border text-surveillance-textMuted'
+                  }`}>
+                    {detections.person ? t('detected') : t('off')}
+                  </span>
                 </div>
-                <span className="font-bold text-emerald-400">{t('detected')}</span>
-              </div>
 
-              {/* 2. Antistatic PPE Verification */}
-              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <HardHat className="h-4 w-4 text-sky-400" />
-                  <span className="text-slate-300">ANTISTATIC PPE</span>
+                {/* Vehicle */}
+                <div className="flex justify-between items-center bg-surveillance-header border border-surveillance-border p-2 rounded">
+                  <span className="font-bold text-[8px] uppercase">{t('vehicle_detection')}</span>
+                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold border ${
+                    detections.vehicle 
+                      ? 'bg-surveillance-success/15 border-surveillance-success text-surveillance-success' 
+                      : 'bg-surveillance-panel/60 border-surveillance-border text-surveillance-textMuted'
+                  }`}>
+                    {detections.vehicle ? t('detected') : t('off')}
+                  </span>
                 </div>
-                <span className="font-bold text-emerald-400">{t('locked')}</span>
-              </div>
 
-              {/* 3. Static Spark / Metallic Tool */}
-              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <ShieldAlert className="h-4 w-4 text-amber-400" />
-                  <span className="text-slate-300">{t('weapon_detection')}</span>
+                {/* Face ID */}
+                <div className="flex justify-between items-center bg-surveillance-header border border-surveillance-border p-2 rounded">
+                  <span className="font-bold text-[8px] uppercase">{t('face_id_lock')}</span>
+                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold border ${
+                    detections.face 
+                      ? 'bg-surveillance-success/15 border-surveillance-success text-surveillance-success' 
+                      : 'bg-surveillance-panel/60 border-surveillance-border text-surveillance-textMuted'
+                  }`}>
+                    {detections.face ? t('locked') : t('off')}
+                  </span>
                 </div>
-                <span className="font-bold text-emerald-400">{t('safe_clear')}</span>
-              </div>
 
-              {/* 4. Optical Smoke / Thermal Anomaly */}
-              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Flame className="h-4 w-4 text-red-400" />
-                  <span className="text-slate-300">{t('smoke_fire_engine')}</span>
+                {/* Weapon */}
+                <div className="flex justify-between items-center bg-surveillance-header border border-surveillance-border p-2 rounded">
+                  <span className="font-bold text-[8px] uppercase">{t('weapon_detection')}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold border ${
+                    detections.weapon 
+                      ? 'bg-surveillance-danger/10 border-surveillance-danger text-surveillance-danger animate-pulse-red font-black' 
+                      : 'bg-surveillance-panel/60 border-surveillance-border text-surveillance-textMuted'
+                  }`}>
+                    {detections.weapon ? t('weapon_alert') : t('safe_clear')}
+                  </span>
                 </div>
-                <span className={`font-bold ${isDemoTarget && demoStep >= 5 ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`}>
-                  {isDemoTarget && demoStep >= 5 ? t('fire_alert') : t('clear')}
-                </span>
-              </div>
 
-              {/* 5. Restricted Barrier Breach */}
-              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <AlertOctagon className="h-4 w-4 text-amber-400" />
-                  <span className="text-slate-300">RESTRICTED BARRIER</span>
+                {/* Violence */}
+                <div className="flex justify-between items-center bg-surveillance-header border border-surveillance-border p-2 rounded">
+                  <span className="font-bold text-[8px] uppercase">{t('fight_recognition')}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold border ${
+                    detections.fight 
+                      ? 'bg-surveillance-danger/10 border-surveillance-danger text-surveillance-danger animate-pulse-red font-black shadow-glow-red' 
+                      : 'bg-surveillance-panel/60 border-surveillance-border text-surveillance-textMuted'
+                  }`}>
+                    {detections.fight ? t('violence_alert') : t('safe_clear')}
+                  </span>
                 </div>
-                <span className="font-bold text-emerald-400">{t('safe_clear')}</span>
-              </div>
 
+                {/* Fire */}
+                <div className="flex justify-between items-center bg-surveillance-header border border-surveillance-border p-2 rounded">
+                  <span className="font-bold text-[8px] uppercase">{t('smoke_fire_engine')}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold border ${
+                    detections.fire 
+                      ? 'bg-surveillance-danger/15 border-surveillance-danger text-surveillance-danger' 
+                      : 'bg-surveillance-panel/60 border-surveillance-border text-surveillance-textMuted'
+                  }`}>
+                    {detections.fire ? t('fire_alert') : t('safe_clear')}
+                  </span>
+                </div>
+
+                {/* Abandoned */}
+                <div className="flex justify-between items-center bg-surveillance-header border border-surveillance-border p-2 rounded">
+                  <span className="font-bold text-[8px] uppercase">{t('abandoned_object_finder')}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold border ${
+                    detections.abandoned 
+                      ? 'bg-surveillance-warning/10 border-surveillance-warning text-surveillance-warning' 
+                      : 'bg-surveillance-panel/60 border-surveillance-border text-surveillance-textMuted'
+                  }`}>
+                    {detections.abandoned ? t('abandoned_alert') : t('clear')}
+                  </span>
+                </div>
+
+              </div>
             </div>
+
+            {/* Combined Confidence Gauge */}
+            <div className="bg-surveillance-header border border-surveillance-border p-3.5 rounded flex items-center justify-between mt-2">
+              <div>
+                <p className="text-[7px] text-surveillance-textMuted uppercase font-bold">{t('decision_engine')}</p>
+                <p className="text-3xs font-bold text-white uppercase">{t('ai_target_lock')}</p>
+              </div>
+              <div className="w-11 h-11 rounded-full flex flex-col items-center justify-center border border-surveillance-accent/40 bg-surveillance-panel text-white font-bold shrink-0">
+                <span className="text-2xs font-black font-mono leading-none">{detections.confidence}%</span>
+                <span className="text-[5px] uppercase tracking-tighter leading-none mt-0.5">{t('confidence')}</span>
+              </div>
+            </div>
+
           </div>
 
-          {/* AI Target Lock Confidence Rating */}
-          <div className="p-3 bg-slate-950 rounded border border-slate-800 text-2xs">
-            <div className="flex justify-between items-center mb-1 font-bold">
-              <span className="text-white">{t('ai_target_lock')}</span>
-              <span className="text-sky-400">98.4%</span>
-            </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-              <div className="bg-sky-400 h-full rounded-full" style={{ width: '98.4%' }}></div>
-            </div>
-          </div>
         </div>
 
       </div>

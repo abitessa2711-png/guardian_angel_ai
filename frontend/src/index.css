@@ -1,159 +1,39 @@
 @import "tailwindcss";
 
-@theme {
-  --color-surveillance-bg: #060b13;
-  --color-surveillance-panel: #0c1527;
-  --color-surveillance-header: #0f1c34;
-  --color-surveillance-border: #1e2d4a;
-  --color-surveillance-borderLight: #334155;
-  --color-surveillance-card: #111c33;
-  --color-surveillance-cardLight: #162442;
-  --color-surveillance-accent: #0ea5e9;
-  --color-surveillance-accentCyan: #06b6d4;
-  --color-surveillance-danger: #ef4444;
-  --color-surveillance-warning: #f59e0b;
-  --color-surveillance-success: #10b981;
-  --color-surveillance-textMuted: #94a3b8;
-  --color-surveillance-textLight: #f1f5f9;
-  
-  --shadow-glow-red: 0 0 16px rgba(239, 68, 68, 0.45);
-  --shadow-glow-cyan: 0 0 16px rgba(14, 165, 233, 0.35);
-  --shadow-glow-amber: 0 0 16px rgba(245, 158, 11, 0.35);
-  --shadow-glow-green: 0 0 16px rgba(16, 185, 129, 0.35);
+@layer base {
+  body {
+    background-color: #f1f5f9;
+    color: #1e293b;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
 }
 
-body {
-  background-color: #060b13;
-  background-image: 
-    radial-gradient(at 15% 15%, rgba(14, 165, 233, 0.04) 0px, transparent 45%),
-    radial-gradient(at 85% 85%, rgba(15, 28, 52, 0.08) 0px, transparent 45%);
-  color: #f1f5f9;
-  font-family: 'Inter', 'Outfit', system-ui, -apple-system, sans-serif;
-  overflow-x: hidden;
-}
-
-body::selection {
-  background-color: #0ea5e9;
-  color: white;
-}
-
-/* Custom Scrollbars */
+/* Custom Clean Scrollbar for Government Dashboard */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #060b13;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e2d4a;
+  background: #cbd5e1;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0ea5e9;
+  background: #94a3b8;
 }
 
-/* Industrial Command Grid overlay */
-.surveillance-grid {
-  background-size: 32px 32px;
-  background-image: linear-gradient(to right, rgba(30, 45, 74, 0.15) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(30, 45, 74, 0.15) 1px, transparent 1px);
-}
-
-/* CRT Surveillance Scanline effect */
-.surveillance-monitor {
-  position: relative;
-  overflow: hidden;
-}
-.surveillance-monitor::after {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-  z-index: 2;
-  background-size: 100% 3px, 6px 100%;
-  pointer-events: none;
-}
-
-/* LED status light animations */
-@keyframes pulse-red {
-  0%, 100% {
-    opacity: 1;
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.8), 0 0 20px rgba(239, 68, 68, 0.4);
-  }
-  50% {
-    opacity: 0.4;
-    box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
-  }
-}
-
-@keyframes pulse-cyan {
-  0%, 100% {
-    opacity: 1;
-    box-shadow: 0 0 10px rgba(14, 165, 233, 0.8), 0 0 20px rgba(14, 165, 233, 0.4);
-  }
-  50% {
-    opacity: 0.4;
-    box-shadow: 0 0 4px rgba(14, 165, 233, 0.4);
-  }
-}
-
-.animate-pulse-red {
-  animation: pulse-red 2s infinite;
-}
-
-.animate-pulse-cyan {
-  animation: pulse-cyan 2.5s infinite;
-}
-
-/* Bounding box animation for AI tracking */
-@keyframes corner-glow {
-  0%, 100% {
-    border-color: rgba(239, 68, 68, 0.8);
-  }
-  50% {
-    border-color: rgba(239, 68, 68, 0.3);
-  }
-}
-
-.ai-bounding-box {
-  animation: corner-glow 1.5s infinite;
-}
-
-/* Government Command Card styles */
-.glass-card, .bg-surveillance-panel {
-  background: #0c1527 !important;
-  border: 1px solid #1e2d4a !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s ease-in-out;
-}
-
-.glass-card:hover {
-  border-color: #334155 !important;
-}
-
-/* Red / Danger card overlay */
-.glass-card-danger {
-  background: rgba(239, 68, 68, 0.07) !important;
-  border-color: rgba(239, 68, 68, 0.45) !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6), 0 0 15px rgba(239, 68, 68, 0.2) !important;
-}
-
-/* Orange / Warning card overlay */
-.glass-card-warning {
-  background: rgba(245, 158, 11, 0.06) !important;
-  border-color: rgba(245, 158, 11, 0.35) !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6), 0 0 15px rgba(245, 158, 11, 0.15) !important;
-}
-
-/* Print Layout styles */
+/* Print Optimization */
 @media print {
   body {
-    background: white !important;
-    color: black !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
-  header, aside, button, select, input, .print\:hidden {
+  header, aside, .no-print, button, select, input {
     display: none !important;
   }
   main {
@@ -165,4 +45,18 @@ body::selection {
   .print-only {
     display: block !important;
   }
+}
+
+/* Bounding box animation for AI tracking */
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-subtle-pulse {
+  animation: subtle-pulse 2s infinite ease-in-out;
 }
