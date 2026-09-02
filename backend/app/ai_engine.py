@@ -9,58 +9,51 @@ from .config import settings
 
 def calculate_risk_scores(camera_name: str, location: str) -> dict:
     """
-    Simulated AI analysis engine that computes safety scores.
-    Returns:
-        dict: Containing following_score, proximity_score, aggression_score, 
-              final_risk, and explanation.
+    Simulated AI analysis engine that computes fireworks MSME environmental
+    and worker safety risk scores.
     """
-    # Decide risk category: HIGH, MEDIUM, LOW
     roll = random.random()
-    if roll < 0.2:  # 20% High Risk
-        following_score = random.randint(75, 95)
-        proximity_score = random.randint(80, 100)
-        aggression_score = random.randint(60, 95)
-    elif roll < 0.5:  # 30% Medium Risk
+    if roll < 0.18:  # 18% High Risk Anomaly
+        following_score = random.randint(75, 95)  # Represents thermal/temp index
+        proximity_score = random.randint(80, 100) # Represents gas ppm & density index
+        aggression_score = random.randint(60, 95) # Represents acoustic / violation index
+    elif roll < 0.45:  # 27% Caution Warning
         following_score = random.randint(40, 74)
-        proximity_score = random.randint(50, 79)
+        proximity_score = random.randint(45, 75)
         aggression_score = random.randint(30, 59)
-    else:  # 50% Low Risk / Normal
-        following_score = random.randint(5, 39)
-        proximity_score = random.randint(10, 49)
-        aggression_score = random.randint(5, 29)
+    else:  # 55% Safe / Normal
+        following_score = random.randint(10, 35)
+        proximity_score = random.randint(10, 40)
+        aggression_score = random.randint(5, 25)
 
-    # Calculate final risk score (weighted average)
-    # Following (40%), Proximity (35%), Aggression (25%)
+    # Calculate final safety risk score (weighted average: Temp 40%, Gas 35%, Activity 25%)
     final_score = int((following_score * 0.40) + (proximity_score * 0.35) + (aggression_score * 0.25))
 
-    # Generate Explainable AI context text
+    # Generate Explainable AI context text for Fireworks MSME Safety
     if final_score >= 75:
-        reasons_en = []
-        reasons_ta = []
-        mins = random.randint(30, 45)
-        db_level = random.randint(85, 95)
-        
-        if following_score >= 75:
-            reasons_en.append(f"Subject has been following target for {mins} minutes")
-            reasons_ta.append(f"நபர் இலக்கை {mins} நிமிடங்களாக தொடர்ந்து பின்தொடர்கிறார்")
-        if proximity_score >= 80:
-            reasons_en.append("Proximity warning: Critical distance under 1.0m maintained")
-            reasons_ta.append("நெருக்க எச்சரிக்கை: ஆபத்தான இடைவெளி 1.0 மீட்டருக்கும் குறைவாக உள்ளது")
-        if aggression_score >= 60:
-            reasons_en.append(f"Aggressive behavior detected | Acoustic scream sensor triggered ({db_level}dB)")
-            reasons_ta.append(f"ஆக்ரோஷமான நடத்தை கண்டறியப்பட்டது | அலறல் ஒலி உணரி தூண்டப்பட்டது ({db_level}dB)")
-        
-        explanation = "CRITICAL ALERT: " + " | ".join(reasons_en) + "."
-        explanation_ta = "அபாய எச்சரிக்கை: " + " | ".join(reasons_ta) + "."
+        temp_c = random.randint(42, 48)
+        gas_ppm = random.randint(420, 680)
+        reasons_en = [
+            f"Thermal Anomaly: Ambient Temp reached {temp_c}°C (>38°C threshold)",
+            f"Volatile Gas Concentration: {gas_ppm} PPM detected",
+            "Exhaust Ventilation Response Protocol Triggered"
+        ]
+        reasons_ta = [
+            f"வெப்ப முரண்பாடு: வெப்பநிலை {temp_c}°C-ஐ எட்டியுள்ளது (வரம்பு >38°C)",
+            f"எரியும் வாயு செறிவு: {gas_ppm} PPM கண்டறியப்பட்டது",
+            "தானியங்கி காற்றோட்ட அமைப்பு இயக்கம் தொடங்கப்பட்டது"
+        ]
+        explanation = "CRITICAL SAFETY ALARM: " + " | ".join(reasons_en) + "."
+        explanation_ta = "தீவிர பாதுகாப்பு எச்சரிக்கை: " + " | ".join(reasons_ta) + "."
     elif final_score >= 45:
-        explanation = f"Caution: Isolated low-light zone. Subject following target (Proximity Risk: {proximity_score}%)."
-        explanation_ta = f"எச்சரிக்கை: ஆட்கள் நடமாட்டம் அற்ற பகுதி. இருண்ட சந்து அருகில் பின்தொடரும் நபர் (நெருக்க விகிதம்: {proximity_score}%)."
+        temp_c = random.randint(34, 38)
+        explanation = f"Caution: Elevated ambient temperature ({temp_c}°C) and worker density near chemical handling zone."
+        explanation_ta = f"எச்சரிக்கை: வேதிப்பொருள் பகுதியில் உயர்ந்த வெப்பநிலை ({temp_c}°C) மற்றும் தொழிலாளர் அடர்த்தி பதிவாகியுள்ளது."
     else:
-        explanation = "Normal pedestrian flow. Safe proximity, acoustics, and movement trails."
-        explanation_ta = "இயல்பான நடைபாதை ஒழுங்கு. நெருக்கம், ஒலி மற்றும் அசைவு வேகம் பாதுகாப்பான வரம்பிற்குள் உள்ளது."
+        explanation = "Normal environmental baseline. Temperature, humidity and gas PPM within safe regulatory limits."
+        explanation_ta = "இயல்பான சுற்றுச்சூழல் நிலை. வெப்பநிலை, ஈரப்பதம் மற்றும் வாயு அளவு பாதுகாப்பான வரம்பில் உள்ளன."
 
-    # Evidence mock URL path
-    evidence_clip = f"/evidence/mock_clip_{random.randint(1, 5)}.mp4"
+    evidence_clip = f"/evidence/mock_clip_{random.randint(1, 4)}.mp4"
 
     return {
         "following_score": following_score,
@@ -74,31 +67,26 @@ def calculate_risk_scores(camera_name: str, location: str) -> dict:
 
 async def surveillance_simulation_loop():
     """
-    Loop that periodically queries the DB for active cameras, calculates
-    a simulated alert, writes it to the database, and broadcasts it via WebSockets.
+    Periodically queries active cameras, calculates simulated hazard telemetry,
+    stores records, and broadcasts alerts via WebSockets.
     """
-    print("[AI Engine] Starting surveillance simulation loop...")
-    await asyncio.sleep(5)  # Wait for startup and seeding
+    print("[AI Engine] Starting PyroGuardian AI safety telemetry loop...")
+    await asyncio.sleep(4)
     
     while True:
         try:
             db: Session = SessionLocal()
             try:
-                # Fetch active cameras
                 cameras = db.query(Camera).filter(Camera.status == "Active").all()
                 if not cameras:
                     db.close()
                     await asyncio.sleep(settings.AI_SIMULATION_INTERVAL_SECS)
                     continue
 
-                # Choose a camera to simulate alert
                 camera = random.choice(cameras)
-                
-                # Analyze camera
                 risk_data = calculate_risk_scores(camera.name, camera.location)
                 
-                # Only save alerts with a minimum risk score of 40 to prevent cluttering,
-                # but occasionally broadcast low risk data
+                # Store alerts when risk threshold >= 40
                 if risk_data["risk_score"] >= 40:
                     alert = Alert(
                         camera_id=camera.id,
@@ -116,7 +104,6 @@ async def surveillance_simulation_loop():
                     db.commit()
                     db.refresh(alert)
                     
-                    # Log to AnalyticsLogs
                     analytics_log = AnalyticsLog(
                         timestamp=datetime.utcnow(),
                         location=camera.location,
@@ -126,7 +113,6 @@ async def surveillance_simulation_loop():
                     db.add(analytics_log)
                     db.commit()
 
-                    # Broadcast the alert to WebSocket clients
                     ws_payload = {
                         "type": "NEW_ALERT",
                         "data": {
@@ -146,10 +132,10 @@ async def surveillance_simulation_loop():
                         }
                     }
                     await manager.broadcast(ws_payload)
-                    print(f"[AI Engine] Generated alert ID {alert.id} for Camera '{camera.name}' with risk {alert.risk_score}%")
+                    print(f"[AI Engine] Broadcasted safety event for Camera '{camera.name}' with risk {alert.risk_score}%")
             finally:
                 db.close()
         except Exception as e:
-            print(f"[AI Engine] Error in simulation loop: {e}")
+            print(f"[AI Engine] Error in telemetry simulation: {e}")
             
         await asyncio.sleep(settings.AI_SIMULATION_INTERVAL_SECS)
