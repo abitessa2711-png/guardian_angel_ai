@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surveillance-bg: #020604; /* dark green/black theme */
+  --color-surveillance-panel: rgba(10, 26, 18, 0.55); /* forest green glass default */
+  --color-surveillance-header: rgba(15, 36, 26, 0.85); /* glass header */
+  --color-surveillance-border: rgba(0, 255, 102, 0.2); /* neon green outline */
+  --color-surveillance-accent: #00ff66; /* bright neon green */
+  --color-surveillance-danger: #ef4444;
+  --color-surveillance-warning: #f59e0b;
+  --color-surveillance-success: #00ff66; /* green */
+  --color-surveillance-textMuted: #a3b8ad; /* green-tinted grey text */
+  
+  --shadow-glow-red: 0 0 18px rgba(239, 68, 68, 0.45);
+  --shadow-glow-cyan: 0 0 18px rgba(0, 255, 102, 0.35); /* neon green glow */
+  --shadow-glow-amber: 0 0 18px rgba(245, 158, 11, 0.3);
+}
+
+body {
+  background-color: #020604;
+  background-image: 
+    radial-gradient(at 10% 10%, rgba(0, 255, 102, 0.06) 0px, transparent 50%),
+    radial-gradient(at 90% 90%, rgba(10, 26, 18, 0.08) 0px, transparent 50%);
+  color: #ffffff; /* crisp white text */
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+body::selection {
+  background-color: var(--color-surveillance-accent);
+  color: white;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #080c14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f293d;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-surveillance-accent);
+}
+
+/* CRT Surveillance Scanline effect */
+.surveillance-monitor {
+  position: relative;
+  overflow: hidden;
+}
+.surveillance-monitor::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+}
+
+/* Grid overlay */
+.surveillance-grid {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(31, 41, 61, 0.15) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(31, 41, 61, 0.15) 1px, transparent 1px);
+}
+
+/* LED status light animations */
+@keyframes pulse-red {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.8), 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
+  }
+}
+
+@keyframes pulse-cyan {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(140, 198, 63, 0.8), 0 0 20px rgba(140, 198, 63, 0.4);
+  }
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 4px rgba(140, 198, 63, 0.4);
+  }
+}
+
+.animate-pulse-red {
+  animation: pulse-red 2s infinite;
+}
+
+.animate-pulse-cyan {
+  animation: pulse-cyan 2.5s infinite;
+}
+
+/* Bounding box animation for AI tracking */
+@keyframes corner-glow {
+  0%, 100% {
+    border-color: rgba(239, 68, 68, 0.8);
+  }
+  50% {
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+}
+
+.ai-bounding-box {
+  animation: corner-glow 1.5s infinite;
+}
+
+/* Print Layout styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  header, aside, button, select, input, .print\:hidden {
+    display: none !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* Glassmorphism panel styles */
+.glass-card, .bg-surveillance-panel {
+  background: rgba(10, 26, 18, 0.45) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 255, 102, 0.15) !important;
+  box-shadow: 0 8px 32px 0 rgba(2, 6, 4, 0.7), 0 0 12px rgba(0, 255, 102, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(0, 255, 102, 0.35) !important;
+  box-shadow: 0 8px 32px 0 rgba(2, 6, 4, 0.8), 0 0 18px rgba(0, 255, 102, 0.12) !important;
+}
+
+/* Red / Danger overlay */
+.glass-card-danger {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.45) !important;
+  box-shadow: 0 8px 32px 0 rgba(4, 8, 15, 0.6), 0 0 18px rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Orange / Warning overlay */
+.glass-card-warning {
+  background: rgba(245, 158, 11, 0.06) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 8px 32px 0 rgba(4, 8, 15, 0.6), 0 0 15px rgba(245, 158, 11, 0.15) !important;
+}

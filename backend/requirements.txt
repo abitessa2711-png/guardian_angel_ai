@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pydantic-settings
+pyjwt
+bcrypt
+python-multipart
+websockets
