@@ -10,18 +10,20 @@ import {
   Settings, 
   ChevronDown, 
   Check, 
+  Play, 
+  Pause,
   AlertTriangle,
-  Play,
-  Pause
+  ShieldAlert,
+  UserCheck
 } from 'lucide-react';
 
 export const CAMERAS_LIST = [
-  { id: 'CAM-04', name: 'Camera 04 - Main Road', location: 'Trichy Main Highway & Bazaar Junction', status: 'Online', ip: '192.168.1.104', type: 'road' },
-  { id: 'CAM-01', name: 'Camera 01 - Market Crossing', location: 'Chatram Central Bazaar Gate', status: 'Online', ip: '192.168.1.101', type: 'crowd' },
-  { id: 'CAM-02', name: 'Camera 02 - Transit Terminal', location: 'Central Bus Stand Platform 1', status: 'Online', ip: '192.168.1.102', type: 'crowd' },
-  { id: 'CAM-03', name: 'Camera 03 - Railway Junction', location: 'Junction Station North Entrance', status: 'Online', ip: '192.168.1.103', type: 'road' },
-  { id: 'CAM-05', name: 'Camera 05 - Subway Corridor', location: 'Lalgudi Pedestrian Subway', status: 'Online', ip: '192.168.1.105', type: 'subway' },
-  { id: 'CAM-06', name: 'Camera 06 - Highway Outer Ring', location: 'NIT Trichy Highway Gate', status: 'Online', ip: '192.168.1.106', type: 'road' },
+  { id: 'CAM-04', name: 'Camera 04 - Main Road & University Gate', location: 'University Main Road Cross', status: 'Online', type: 'road', video: '/videos/traffic.mp4', threatLevel: 'Normal' },
+  { id: 'CAM-02', name: 'Camera 02 - Central Bus Stand Platform 1', location: 'Central Bus Stand Main Concourse', status: 'Online', type: 'crowd', video: '/videos/crowd.mp4', threatLevel: 'Critical' },
+  { id: 'CAM-05', name: 'Camera 05 - Campus Subway Corridor', location: 'Underground Pedestrian Subway', status: 'Online', type: 'subway', video: '/videos/isolated.mp4', threatLevel: 'High' },
+  { id: 'CAM-03', name: 'Camera 03 - Railway Station North Gate', location: 'Junction Station Auto Stand', status: 'Online', type: 'road', video: '/videos/threat.mp4', threatLevel: 'Medium' },
+  { id: 'CAM-07', name: 'Camera 07 - Srirangam Temple South Gate', location: 'Temple Car Street Walkway', status: 'Online', type: 'crowd', video: '/videos/crowd.mp4', threatLevel: 'High' },
+  { id: 'CAM-09', name: 'Camera 09 - Gandhi Market Alley', location: 'Bazaar North Narrow Lane', status: 'Online', type: 'subway', video: '/videos/isolated.mp4', threatLevel: 'Medium' },
 ];
 
 export default function LiveCameraFeed({ 
@@ -33,6 +35,7 @@ export default function LiveCameraFeed({
 }) {
   const [activeCamId, setActiveCamId] = useState(selectedCamera);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAudioMuted, setIsAudioMuted] = useState(true);
   const [isIntercomActive, setIsIntercomActive] = useState(false);
@@ -40,9 +43,10 @@ export default function LiveCameraFeed({
   const [snapshotFeedback, setSnapshotFeedback] = useState(false);
 
   // Overlay filter toggles
-  const [showPersonBox, setShowPersonBox] = useState(true);
-  const [showVehicleBox, setShowVehicleBox] = useState(true);
-  const [showAnimalBox, setShowAnimalBox] = useState(true);
+  const [showWomanBox, setShowWomanBox] = useState(true);
+  const [showSuspectBox, setShowSuspectBox] = useState(true);
+  const [showDistressIndicator, setShowDistressIndicator] = useState(true);
+  const [showProximityLine, setShowProximityLine] = useState(true);
   const [showTelemetry, setShowTelemetry] = useState(true);
 
   const containerRef = useRef(null);
@@ -54,10 +58,24 @@ export default function LiveCameraFeed({
     setActiveCamId(selectedCamera);
   }, [selectedCamera]);
 
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.play().catch(e => console.log('Video autoplay:', e));
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isPlaying, activeCamId]);
+
   const handleCameraChange = (camId) => {
     setActiveCamId(camId);
     setIsDropdownOpen(false);
     if (onSelectCamera) onSelectCamera(camId);
+  };
+
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
   };
 
   const handleTakeSnapshot = () => {
@@ -79,13 +97,6 @@ export default function LiveCameraFeed({
     }
   };
 
-  // Video source selector based on camera type
-  const getVideoSource = () => {
-    if (currentCam.type === 'crowd') return '/videos/crowd.mp4';
-    if (currentCam.type === 'subway') return '/videos/isolated.mp4';
-    return '/videos/traffic.mp4';
-  };
-
   return (
     <div 
       ref={containerRef}
@@ -94,9 +105,12 @@ export default function LiveCameraFeed({
       {/* Feed Top Header Bar */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 bg-white">
         <div className="flex items-center space-x-2">
-          <h3 className="font-bold text-slate-800 text-sm tracking-tight">Live Camera Feed</h3>
+          <div className="flex items-center space-x-1.5">
+            <ShieldAlert className="w-4 h-4 text-red-600" />
+            <h3 className="font-bold text-slate-900 text-sm tracking-tight">Live Women Safety CCTV Stream</h3>
+          </div>
           <span className="text-slate-400 text-xs">|</span>
-          <span className="text-xs text-slate-500 font-mono font-medium">{currentCam.id}</span>
+          <span className="text-xs text-slate-500 font-mono font-bold">{currentCam.id}</span>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -104,20 +118,20 @@ export default function LiveCameraFeed({
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center justify-between space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors"
+              className="flex items-center justify-between space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
             >
               <span>{currentCam.name}</span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-slate-200 py-1 z-50">
+              <div className="absolute right-0 mt-1 w-72 bg-white rounded-md shadow-xl border border-slate-200 py-1 z-50">
                 {CAMERAS_LIST.map((cam) => (
                   <button
                     key={cam.id}
                     onClick={() => handleCameraChange(cam.id)}
-                    className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 ${
-                      activeCamId === cam.id ? 'font-bold text-blue-700 bg-blue-50/60' : 'text-slate-700'
+                    className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 cursor-pointer ${
+                      activeCamId === cam.id ? 'font-bold text-blue-700 bg-blue-50/70' : 'text-slate-700'
                     }`}
                   >
                     <div>
@@ -134,7 +148,7 @@ export default function LiveCameraFeed({
           {/* Fullscreen Toggle Button */}
           <button 
             onClick={toggleFullscreen}
-            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded border border-slate-200 transition-colors"
+            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded border border-slate-200 transition-colors cursor-pointer"
             title="Toggle Fullscreen"
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -142,127 +156,109 @@ export default function LiveCameraFeed({
         </div>
       </div>
 
-      {/* Main Video & Simulated Road Surveillance Stream */}
+      {/* Main Video Area Playing Real Surveillance Video Clips */}
       <div className="relative bg-slate-950 aspect-[16/9] w-full overflow-hidden flex items-center justify-center select-none group">
         
-        {/* Background Image / Video Simulation */}
-        <div className="absolute inset-0 w-full h-full">
-          {/* Authentic Public Intersection Visual with Road, Vehicles, Pedestrians and Animal */}
-          <img 
-            src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=1200&auto=format&fit=crop" 
-            alt="Live CCTV Street Traffic"
-            className="w-full h-full object-cover brightness-95 contrast-105"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=1200&auto=format&fit=crop";
-            }}
-          />
-          {/* Optional Local Looping Video Overlay if available */}
-          <video
-            ref={videoRef}
-            src={getVideoSource()}
-            autoPlay
-            loop
-            muted={isAudioMuted}
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-multiply pointer-events-none"
-          />
-        </div>
+        {/* Real Continuously Looping CCTV Video Clip */}
+        <video
+          ref={videoRef}
+          key={currentCam.video}
+          src={currentCam.video}
+          autoPlay
+          loop
+          muted={isAudioMuted}
+          playsInline
+          className="w-full h-full object-cover brightness-95 contrast-105"
+        />
 
-        {/* Top-Left: LIVE Status Indicator & Camera Meta */}
-        <div className="absolute top-3 left-3 flex items-center space-x-2 z-10">
+        {/* Top-Left: LIVE Status & REC Indicators */}
+        <div className="absolute top-3 left-3 flex items-center space-x-2 z-20">
           <div className="flex items-center space-x-1.5 bg-emerald-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
-            <span className="tracking-wider">LIVE</span>
+            <span className="tracking-wider">LIVE FEED</span>
           </div>
           {isRecording && (
             <div className="flex items-center space-x-1 bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
               <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
-              <span>REC</span>
+              <span>REC 1080p</span>
             </div>
           )}
         </div>
 
-        {/* Top-Right: Camera Stream Telemetry */}
+        {/* Top-Right: Stream AI Telemetry */}
         {showTelemetry && (
-          <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-xs text-white px-2 py-1 rounded font-mono text-[10px] border border-white/10 z-10 space-y-0.5 text-right">
-            <div>30 FPS | 1080p H.265</div>
-            <div className="text-slate-300">BITRATE: 4.2 Mbps</div>
+          <div className="absolute top-3 right-3 bg-slate-900/85 backdrop-blur-xs text-white px-2.5 py-1.5 rounded font-mono text-[10px] border border-white/10 z-20 space-y-0.5 text-right">
+            <div>30 FPS | H.265 HIGH PROFILE</div>
+            <div className="text-emerald-400 font-bold">AI INFERENCE: 18ms</div>
+            <div className="text-slate-400">LATENCY: 0.04s</div>
           </div>
         )}
 
-        {/* Subtle Computer Vision Bounding Boxes Overlay (SVG) */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {/* Real-time Computer Vision Bounding Box Overlays (SVG) */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
           
-          {/* 1. Pedestrian Bounding Boxes (Green) */}
-          {showPersonBox && (
+          {/* 1. Tracked Woman Subject (Green / Cyan Box with Facial Distress Flag) */}
+          {showWomanBox && (
             <>
-              {/* Left Pedestrian 1 */}
-              <rect x="7" y="51" width="6" height="15.5" fill="none" stroke="#22c55e" strokeWidth="0.45" rx="0.5" />
-              <rect x="7" y="48.5" width="6" height="2.5" fill="#22c55e" rx="0.3" />
-              <text x="10" y="50.3" fill="#ffffff" fontSize="1.8" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">Person</text>
+              {/* Woman Bounding Box */}
+              <rect x="24" y="38" width="8.5" height="32" fill="none" stroke="#10b981" strokeWidth="0.5" rx="0.5" />
+              <rect x="24" y="34.5" width="13" height="3.2" fill="#10b981" rx="0.4" />
+              <text x="30.5" y="36.8" fill="#ffffff" fontSize="2.0" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">
+                Woman #4412
+              </text>
 
-              {/* Pedestrian 2 */}
-              <rect x="23" y="42" width="6.5" height="14" fill="none" stroke="#22c55e" strokeWidth="0.45" rx="0.5" />
-              <rect x="23" y="39.8" width="6.5" height="2.2" fill="#22c55e" rx="0.3" />
-              <text x="26.2" y="41.5" fill="#ffffff" fontSize="1.6" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">Person</text>
-
-              {/* Pedestrian 3 */}
-              <rect x="54" y="53" width="7" height="16" fill="none" stroke="#22c55e" strokeWidth="0.45" rx="0.5" />
-              <rect x="54" y="50.6" width="7" height="2.4" fill="#22c55e" rx="0.3" />
-              <text x="57.5" y="52.4" fill="#ffffff" fontSize="1.7" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">Person</text>
-
-              {/* Pedestrian 4 (Distance background) */}
-              <rect x="29" y="36" width="4.5" height="10" fill="none" stroke="#22c55e" strokeWidth="0.4" rx="0.4" />
-              <rect x="29" y="34.2" width="4.5" height="1.8" fill="#22c55e" rx="0.3" />
-              <text x="31.2" y="35.6" fill="#ffffff" fontSize="1.3" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">Person</text>
-
-              {/* Pedestrian 5 */}
-              <rect x="51.5" y="41" width="5.5" height="12.5" fill="none" stroke="#22c55e" strokeWidth="0.4" rx="0.4" />
-              <rect x="51.5" y="39.2" width="5.5" height="1.8" fill="#22c55e" rx="0.3" />
-              <text x="54.2" y="40.6" fill="#ffffff" fontSize="1.4" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">Person</text>
+              {/* Facial Emotion / Distress Badge */}
+              {showDistressIndicator && (
+                <>
+                  <rect x="24" y="30.5" width="22" height="3.5" fill="#ef4444" rx="0.4" />
+                  <text x="35" y="32.9" fill="#ffffff" fontSize="1.8" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">
+                    Distress Indicator (Fear: 92%)
+                  </text>
+                </>
+              )}
             </>
           )}
 
-          {/* 2. Animal Crossing Bounding Box (Yellow/Amber) - Cow on Road */}
-          {showAnimalBox && (
+          {/* 2. Trailing Suspect Bounding Box (Amber / Red Box) */}
+          {showSuspectBox && (
             <>
-              <rect 
-                x="37" 
-                y="46.5" 
-                width="15.5" 
-                height="15.5" 
-                fill="none" 
-                stroke="#eab308" 
-                strokeWidth="0.55" 
-                strokeDasharray="2, 0.5"
-                rx="0.5"
-                className="animate-subtle-pulse"
-              />
-              <rect x="37" y="43.8" width="9.5" height="2.7" fill="#eab308" rx="0.3" />
-              <text x="41.7" y="45.8" fill="#0f172a" fontSize="1.8" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">Animal</text>
+              <rect x="12" y="39" width="9" height="34" fill="none" stroke="#f97316" strokeWidth="0.5" strokeDasharray="1.5, 0.5" rx="0.5" />
+              <rect x="12" y="35.5" width="13.5" height="3.2" fill="#f97316" rx="0.4" />
+              <text x="18.7" y="37.8" fill="#ffffff" fontSize="2.0" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">
+                Suspect #8821
+              </text>
             </>
           )}
 
-          {/* 3. Vehicle Bounding Boxes (Blue) */}
-          {showVehicleBox && (
+          {/* 3. Proximity Distance Connection Line */}
+          {showProximityLine && (
             <>
-              {/* White Car */}
-              <rect x="44.5" y="41.5" width="9.5" height="8.5" fill="none" stroke="#3b82f6" strokeWidth="0.4" rx="0.5" />
-              
-              {/* Black Car */}
-              <rect x="34.5" y="41" width="8" height="7.5" fill="none" stroke="#3b82f6" strokeWidth="0.4" rx="0.5" />
+              <line x1="21" y1="52" x2="24" y2="52" stroke="#ef4444" strokeWidth="0.6" strokeDasharray="1, 0.5" />
+              <rect x="18.5" y="49" width="8" height="2.8" fill="#991b1b" rx="0.3" />
+              <text x="22.5" y="51" fill="#ffffff" fontSize="1.6" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                0.8m GAP
+              </text>
             </>
           )}
 
         </svg>
 
-        {/* Snapshot Taken Flash Feedback */}
+        {/* Center Play/Pause Overlay When Hovered/Paused */}
+        {!isPlaying && (
+          <div className="absolute inset-0 bg-black/40 z-30 flex items-center justify-center pointer-events-none">
+            <div className="bg-slate-900/90 text-white px-4 py-2 rounded-full flex items-center space-x-2 font-bold text-xs shadow-lg">
+              <Pause className="w-4 h-4 text-amber-400" />
+              <span>PAUSED FRAME AT INSPECTION</span>
+            </div>
+          </div>
+        )}
+
+        {/* Snapshot Flash Feedback */}
         {snapshotFeedback && (
-          <div className="absolute inset-0 bg-white/70 z-30 flex items-center justify-center animate-fade-out">
-            <div className="bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded shadow-lg flex items-center space-x-2">
+          <div className="absolute inset-0 bg-white/70 z-40 flex items-center justify-center animate-fade-out">
+            <div className="bg-slate-900 text-white font-bold text-xs px-3.5 py-2 rounded shadow-xl flex items-center space-x-2">
               <Camera className="w-4 h-4 text-emerald-400" />
-              <span>Evidence Snapshot Saved to Vault</span>
+              <span>Evidence Frame Captured & Cryptographically Vaulted</span>
             </div>
           </div>
         )}
@@ -270,14 +266,22 @@ export default function LiveCameraFeed({
       </div>
 
       {/* Camera Control Footer Bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-900 text-slate-300 border-t border-slate-800">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#0b1b30] text-slate-300 border-t border-slate-800">
         
-        {/* Left Tools: Snapshot, Record, Mic, Speaker */}
+        {/* Left Tools: Play/Pause, Snapshot, Record, Mic, Speaker */}
         <div className="flex items-center space-x-3">
           <button
+            onClick={togglePlayPause}
+            className="p-1.5 text-slate-200 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
+            title={isPlaying ? 'Pause CCTV Stream' : 'Play CCTV Stream'}
+          >
+            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 text-emerald-400" />}
+          </button>
+
+          <button
             onClick={handleTakeSnapshot}
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
-            title="Capture High-Res Evidence Snapshot"
+            className="p-1.5 text-slate-200 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
+            title="Capture High-Resolution Evidence Frame"
           >
             <Camera className="w-4 h-4" />
           </button>
@@ -297,7 +301,7 @@ export default function LiveCameraFeed({
             className={`p-1.5 rounded transition-colors cursor-pointer ${
               isIntercomActive ? 'text-emerald-400 bg-emerald-950/60' : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
-            title="Control Room Public Announcement Mic"
+            title="Control Room Intercom Mic Broadcast"
           >
             <Mic className="w-4 h-4" />
           </button>
@@ -305,59 +309,70 @@ export default function LiveCameraFeed({
           <button
             onClick={() => setIsAudioMuted(!isAudioMuted)}
             className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
-            title={isAudioMuted ? 'Unmute Audio Sensor' : 'Mute Audio Sensor'}
+            title={isAudioMuted ? 'Unmute Acoustic Sensor' : 'Mute Acoustic Sensor'}
           >
             {isAudioMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-blue-400" />}
           </button>
         </div>
 
-        {/* Center: Intercom Active Indicator */}
-        {isIntercomActive && (
-          <div className="text-[11px] text-emerald-400 font-semibold animate-pulse flex items-center space-x-1">
-            <span>MIC BROADCASTING TO {currentCam.name.toUpperCase()}...</span>
-          </div>
-        )}
+        {/* Center: Real-time Multi-Factor Risk Assessment Status */}
+        <div className="hidden sm:flex items-center space-x-2 text-xs font-mono">
+          <span className="text-slate-400">STATUS:</span>
+          <span className="text-red-400 font-bold flex items-center space-x-1">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            <span>HIGH RISK DETECTED (FEAR + FOLLOWING + 0.8m)</span>
+          </span>
+        </div>
 
         {/* Right Tools: Detection Layer Settings */}
         <div className="relative">
           <button
             onClick={() => setShowConfig(!showConfig)}
             className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
-            title="Computer Vision Overlays Configuration"
+            title="Detection Overlays Toggle"
           >
             <Settings className="w-4 h-4" />
           </button>
 
           {showConfig && (
-            <div className="absolute right-0 bottom-8 w-52 bg-white text-slate-800 rounded-md shadow-xl border border-slate-200 p-3 z-50 text-xs space-y-2">
+            <div className="absolute right-0 bottom-8 w-56 bg-white text-slate-800 rounded-md shadow-xl border border-slate-200 p-3 z-50 text-xs space-y-2">
               <p className="font-bold text-slate-900 border-b border-slate-100 pb-1 text-[11px] uppercase tracking-wider">
-                Detection Overlays
+                Surveillance Overlays
               </p>
               <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-slate-700">People (Green)</span>
+                <span className="text-slate-700">Woman Subject (Green)</span>
                 <input 
                   type="checkbox" 
-                  checked={showPersonBox} 
-                  onChange={(e) => setShowPersonBox(e.target.checked)}
-                  className="rounded text-blue-600"
+                  checked={showWomanBox} 
+                  onChange={(e) => setShowWomanBox(e.target.checked)}
+                  className="rounded text-blue-600 cursor-pointer"
                 />
               </label>
               <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-slate-700">Animals (Yellow)</span>
+                <span className="text-slate-700">Suspect Tracker (Orange)</span>
                 <input 
                   type="checkbox" 
-                  checked={showAnimalBox} 
-                  onChange={(e) => setShowAnimalBox(e.target.checked)}
-                  className="rounded text-blue-600"
+                  checked={showSuspectBox} 
+                  onChange={(e) => setShowSuspectBox(e.target.checked)}
+                  className="rounded text-blue-600 cursor-pointer"
                 />
               </label>
               <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-slate-700">Vehicles (Blue)</span>
+                <span className="text-slate-700">Distress Emotion Flag</span>
                 <input 
                   type="checkbox" 
-                  checked={showVehicleBox} 
-                  onChange={(e) => setShowVehicleBox(e.target.checked)}
-                  className="rounded text-blue-600"
+                  checked={showDistressIndicator} 
+                  onChange={(e) => setShowDistressIndicator(e.target.checked)}
+                  className="rounded text-blue-600 cursor-pointer"
+                />
+              </label>
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-slate-700">Proximity Vector Line</span>
+                <input 
+                  type="checkbox" 
+                  checked={showProximityLine} 
+                  onChange={(e) => setShowProximityLine(e.target.checked)}
+                  className="rounded text-blue-600 cursor-pointer"
                 />
               </label>
               <label className="flex items-center justify-between cursor-pointer">
@@ -366,7 +381,7 @@ export default function LiveCameraFeed({
                   type="checkbox" 
                   checked={showTelemetry} 
                   onChange={(e) => setShowTelemetry(e.target.checked)}
-                  className="rounded text-blue-600"
+                  className="rounded text-blue-600 cursor-pointer"
                 />
               </label>
             </div>

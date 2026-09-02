@@ -2,14 +2,22 @@ import React, { useState } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import DashboardView from '../components/DashboardView';
+import WomenSafetyMonitoringView from '../components/WomenSafetyMonitoringView';
 import LiveMonitoringView from '../components/LiveMonitoringView';
+import WomenAtRiskView from '../components/WomenAtRiskView';
+import HarassmentDetectionView from '../components/HarassmentDetectionView';
+import FacialDistressView from '../components/FacialDistressView';
+import BehaviorAnalysisView from '../components/BehaviorAnalysisView';
 import AlertsView from '../components/AlertsView';
+import EvidenceView from '../components/EvidenceView';
+import DatasetManagementView from '../components/DatasetManagementView';
+import AIModelTrainingView from '../components/AIModelTrainingView';
+import ModelEvaluationView from '../components/ModelEvaluationView';
 import AnalyticsView from '../components/AnalyticsView';
-import PeopleTrackingView from '../components/PeopleTrackingView';
 import AnimalMonitoringView from '../components/AnimalMonitoringView';
 import IncidentsView from '../components/IncidentsView';
-import EvidenceView from '../components/EvidenceView';
 import ReportsView from '../components/ReportsView';
+import AuditLogsView from '../components/AuditLogsView';
 import SettingsView from '../components/SettingsView';
 import UsersView from '../components/UsersView';
 import SystemStatusView from '../components/SystemStatusView';
@@ -44,13 +52,13 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#f1f5f9] flex flex-col font-sans text-slate-800 antialiased select-none">
       
-      {/* 1. Government Control Room Header */}
+      {/* 1. Government Control Room Header with Tamil Nadu Seal */}
       <Header 
         onSelectAlert={(alert) => setSelectedAlert(alert)} 
-        unreadCount={3}
+        unreadCount={5}
       />
 
-      {/* 2. Main Workspace Layout: Left Sidebar + Right Content Area */}
+      {/* 2. Main Workspace Layout: Left Navigation Sidebar + Right Dynamic Content View */}
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Navigation Sidebar */}
@@ -65,14 +73,14 @@ export default function Dashboard() {
           {/* Breadcrumb Bar */}
           <div className="mb-3.5 flex items-center justify-between no-print">
             <div className="flex items-center space-x-2 text-xs">
-              <span className="text-slate-400 font-medium">Control Room Portal</span>
+              <span className="text-slate-400 font-medium">Women Safety Command</span>
               <span className="text-slate-300">/</span>
-              <span className="font-bold text-slate-800 capitalize tracking-wide">
-                {activeTab.replace('_', ' ')}
+              <span className="font-bold text-slate-900 capitalize tracking-wide">
+                {activeTab.replace(/_/g, ' ')}
               </span>
             </div>
             <div className="text-[11px] text-slate-500 font-mono">
-              TAMIL NADU POLICE • TRICHY SMART CITY SURVEILLANCE GRID
+              TAMIL NADU POLICE • WOMEN SAFETY SURVEILLANCE & AI RISK GRID
             </div>
           </div>
 
@@ -85,9 +93,41 @@ export default function Dashboard() {
             />
           )}
 
-          {activeTab === 'live_monitoring' && (
+          {activeTab === 'women_safety' && (
+            <WomenSafetyMonitoringView 
+              onSelectAlert={(alert) => setSelectedAlert(alert)}
+              onDispatchAlert={handleDispatchAlert}
+            />
+          )}
+
+          {activeTab === 'live_cctv' && (
             <LiveMonitoringView 
               onCaptureSnapshot={handleCaptureSnapshot}
+            />
+          )}
+
+          {activeTab === 'women_at_risk' && (
+            <WomenAtRiskView 
+              onDispatchAlert={handleDispatchAlert}
+            />
+          )}
+
+          {activeTab === 'harassment' && (
+            <HarassmentDetectionView 
+              onSelectAlert={(alert) => setSelectedAlert(alert)}
+              onDispatchAlert={handleDispatchAlert}
+            />
+          )}
+
+          {activeTab === 'facial_distress' && (
+            <FacialDistressView 
+              onSelectAlert={(alert) => setSelectedAlert(alert)}
+            />
+          )}
+
+          {activeTab === 'behavior' && (
+            <BehaviorAnalysisView 
+              onDispatchAlert={handleDispatchAlert}
             />
           )}
 
@@ -98,31 +138,31 @@ export default function Dashboard() {
             />
           )}
 
+          {activeTab === 'evidence' && (
+            <EvidenceView 
+              onOpenEvidenceModal={(evidence) => setSelectedEvidence(evidence)}
+            />
+          )}
+
+          {activeTab === 'dataset' && (
+            <DatasetManagementView />
+          )}
+
+          {activeTab === 'training' && (
+            <AIModelTrainingView />
+          )}
+
+          {activeTab === 'evaluation' && (
+            <ModelEvaluationView />
+          )}
+
           {activeTab === 'analytics' && (
             <AnalyticsView />
           )}
 
-          {activeTab === 'people_tracking' && (
-            <PeopleTrackingView 
-              onSelectAlert={(alert) => setSelectedAlert(alert)}
-            />
-          )}
-
-          {activeTab === 'animal_monitoring' && (
+          {activeTab === 'animal_safety' && (
             <AnimalMonitoringView 
               onDispatchAlert={handleDispatchAlert}
-            />
-          )}
-
-          {activeTab === 'incidents' && (
-            <IncidentsView 
-              onOpenDispatchModal={handleDispatchAlert}
-            />
-          )}
-
-          {activeTab === 'evidence' && (
-            <EvidenceView 
-              onOpenEvidenceModal={(evidence) => setSelectedEvidence(evidence)}
             />
           )}
 
@@ -130,16 +170,12 @@ export default function Dashboard() {
             <ReportsView />
           )}
 
+          {activeTab === 'audit_logs' && (
+            <AuditLogsView />
+          )}
+
           {activeTab === 'settings' && (
             <SettingsView />
-          )}
-
-          {activeTab === 'users' && (
-            <UsersView />
-          )}
-
-          {activeTab === 'system_status' && (
-            <SystemStatusView />
           )}
 
         </main>
@@ -152,7 +188,7 @@ export default function Dashboard() {
           alert={selectedAlert}
           onClose={() => setSelectedAlert(null)}
           onDispatch={handleDispatchAlert}
-          onResolve={(id) => showToast(`Alert ${id} successfully verified and resolved.`)}
+          onResolve={(id) => showToast(`Incident ${id} marked legally verified and resolved.`)}
         />
       )}
 
@@ -168,7 +204,7 @@ export default function Dashboard() {
         <EvidenceModal 
           evidence={selectedEvidence}
           onClose={() => setSelectedEvidence(null)}
-          onMarkVerified={(id) => showToast(`Evidence ${id} marked legally verified.`)}
+          onMarkVerified={(id) => showToast(`Evidence ${id} marked verified.`)}
         />
       )}
 
