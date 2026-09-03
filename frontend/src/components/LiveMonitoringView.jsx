@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Video, 
   Play, 
@@ -18,16 +18,26 @@ import {
   Eye,
   Info
 } from 'lucide-react';
-import { ALL_16_CAMERAS } from './DashboardView';
+import { EIGHT_CCTV_FEEDS } from './DashboardView';
 
-export default function LiveMonitoringView({ onCaptureSnapshot, onDispatchAlert }) {
-  const [selectedCamId, setSelectedCamId] = useState('CAM 01');
+export default function LiveMonitoringView({ 
+  selectedCameraId = 'CAM 01',
+  onCaptureSnapshot, 
+  onDispatchAlert 
+}) {
+  const [activeCamId, setActiveCamId] = useState(selectedCameraId);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isAudioMuted, setIsAudioMuted] = useState(true);
   const [liveClock, setLiveClock] = useState('');
   const [snapshotToast, setSnapshotToast] = useState(null);
 
-  const currentCam = ALL_16_CAMERAS.find(c => c.id === selectedCamId) || ALL_16_CAMERAS[0];
+  useEffect(() => {
+    if (selectedCameraId) {
+      setActiveCamId(selectedCameraId);
+    }
+  }, [selectedCameraId]);
+
+  const currentCam = EIGHT_CCTV_FEEDS.find(c => c.id === activeCamId) || EIGHT_CCTV_FEEDS[0];
 
   useEffect(() => {
     const update = () => {
@@ -44,11 +54,10 @@ export default function LiveMonitoringView({ onCaptureSnapshot, onDispatchAlert 
     if (onCaptureSnapshot) onCaptureSnapshot(currentCam);
   };
 
-  // Detailed telemetry for selected camera
   const cameraTimeline = [
-    { time: '11:24:10', event: 'Following & Trailing Vector locked on Woman #4412 (0.8m proximity)', risk: 'Critical' },
-    { time: '11:22:05', event: 'Facial Distress Indicator flagged (Fear confidence: 92%)', risk: 'High' },
-    { time: '11:20:31', event: 'Suspect #8821 matched walking speed across 3 checkpoints', risk: 'Medium' },
+    { time: '11:24:10', event: `Following & Trailing Vector locked on ${currentCam.person} (0.8m proximity)`, risk: 'Critical' },
+    { time: '11:22:05', event: `Facial Distress Indicator flagged (${currentCam.face})`, risk: 'High' },
+    { time: '11:20:31', event: 'Suspect matched walking speed across 3 checkpoints', risk: 'Medium' },
     { time: '11:15:00', event: 'Camera auto-calibrated for night illumination mode', risk: 'Normal' },
   ];
 
@@ -66,13 +75,13 @@ export default function LiveMonitoringView({ onCaptureSnapshot, onDispatchAlert 
 
         {/* Camera Selector Dropdown */}
         <div className="flex items-center space-x-2">
-          <span className="text-[11px] font-bold text-slate-500">Select Feed:</span>
+          <span className="text-[11px] font-bold text-slate-500">Select Camera Feed:</span>
           <select
-            value={selectedCamId}
-            onChange={(e) => setSelectedCamId(e.target.value)}
-            className="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600"
+            value={activeCamId}
+            onChange={(e) => setActiveCamId(e.target.value)}
+            className="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer"
           >
-            {ALL_16_CAMERAS.map(c => (
+            {EIGHT_CCTV_FEEDS.map(c => (
               <option key={c.id} value={c.id}>
                 {c.name} {c.threat ? `[${c.risk}]` : ''}
               </option>
@@ -93,7 +102,7 @@ export default function LiveMonitoringView({ onCaptureSnapshot, onDispatchAlert 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
         
         {/* Left: Large Live CCTV Video Player (8 cols) */}
-        <div className="lg:col-span-8 bg-black rounded border border-slate-300 overflow-hidden flex flex-col">
+        <div className="lg:col-span-8 bg-black rounded border border-slate-300 overflow-hidden flex flex-col shadow-xs">
           
           {/* Video Header */}
           <div className="bg-[#0b1b30] text-white px-3 py-1.5 flex items-center justify-between text-xs border-b border-slate-800 font-mono">
@@ -109,7 +118,7 @@ export default function LiveMonitoringView({ onCaptureSnapshot, onDispatchAlert 
             </span>
           </div>
 
-          {/* High-Definition Live Video Frame */}
+          {/* High-Definition Live Video Frame (No player controls, clean CCTV look) */}
           <div className="relative aspect-video bg-black overflow-hidden flex items-center justify-center">
             <video
               key={currentCam.video}
@@ -152,7 +161,7 @@ export default function LiveMonitoringView({ onCaptureSnapshot, onDispatchAlert 
 
             {/* Top-Left: LIVE Badge & Time */}
             <div className="absolute top-2 left-2 flex items-center space-x-1.5 z-20">
-              <span className="bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+              <span className="bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs">
                 ● LIVE
               </span>
               <span className="bg-slate-900/90 text-white font-mono text-[9px] px-1.5 py-0.5 rounded">

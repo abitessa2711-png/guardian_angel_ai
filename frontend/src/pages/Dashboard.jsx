@@ -17,6 +17,7 @@ import EvidenceModal from '../components/EvidenceModal';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedCameraId, setSelectedCameraId] = useState('CAM 01');
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedIncidentForDispatch, setSelectedIncidentForDispatch] = useState(null);
   const [selectedEvidence, setSelectedEvidence] = useState(null);
@@ -79,12 +80,14 @@ export default function Dashboard() {
             <DashboardView 
               onSelectAlert={(alert) => setSelectedAlert(alert)}
               onNavigateToTab={(tab) => setActiveTab(tab)}
+              onSelectCamera={(camId) => setSelectedCameraId(camId)}
               onCaptureSnapshot={handleCaptureSnapshot}
             />
           )}
 
           {activeTab === 'live_monitoring' && (
             <LiveMonitoringView 
+              selectedCameraId={selectedCameraId}
               onCaptureSnapshot={handleCaptureSnapshot}
               onDispatchAlert={handleDispatchAlert}
             />

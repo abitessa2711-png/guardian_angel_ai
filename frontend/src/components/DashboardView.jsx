@@ -6,13 +6,10 @@ import {
   ShieldAlert, 
   AlertOctagon, 
   Camera, 
-  Maximize2, 
   ChevronRight,
-  Info,
   Send,
-  CheckCircle2,
-  Clock,
-  Eye
+  Eye,
+  Maximize2
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -23,28 +20,117 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 
-export const ALL_16_CAMERAS = [
-  { id: 'CAM 01', name: 'CAM 01 — Central Bus Stand', location: 'Central Bus Stand', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'HIGH', face: 'DISTRESS (88%)', behavior: 'FOLLOWING (0.8m)', threat: true, person: 'Woman #4412' },
-  { id: 'CAM 02', name: 'CAM 02 — Main Junction', location: 'Main Junction', video: '/videos/traffic.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL ACTIVITY', threat: false, person: 'Woman #4421' },
-  { id: 'CAM 03', name: 'CAM 03 — Railway Station', location: 'Railway Station', video: '/videos/threat.mp4', status: 'LIVE', risk: 'HIGH', face: 'FEAR (92%)', behavior: 'CHASING VECTOR', threat: true, person: 'Woman #4435' },
-  { id: 'CAM 04', name: 'CAM 04 — Market Area', location: 'Market Area', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'CRITICAL', face: 'FEAR (95%)', behavior: 'STALKING (18m)', threat: true, person: 'Woman #4440' },
-  { id: 'CAM 05', name: 'CAM 05 — College Campus', location: 'College Campus', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'HIGH', face: 'DISTRESS (86%)', behavior: 'ISOLATED WALKWAY', threat: true, person: 'Woman #4419' },
-  { id: 'CAM 06', name: 'CAM 06 — Public Street', location: 'Public Street', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL COMMUTE', threat: false, person: 'Woman #4451' },
-  { id: 'CAM 07', name: 'CAM 07 — Bus Stop', location: 'Bus Stop', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'WAITING TRANSIT', threat: false, person: 'Woman #4458' },
-  { id: 'CAM 08', name: 'CAM 08 — Parking Area', location: 'Parking Area', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'MEDIUM', face: 'SADNESS (74%)', behavior: 'LOITERING NEAR CARS', threat: false, person: 'Woman #4462' },
-  { id: 'CAM 09', name: 'CAM 09 — Shopping Area', location: 'Shopping Area', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'HIGH', face: 'ANGER / FEAR', behavior: 'AGGRESSIVE APPROACH', threat: true, person: 'Woman #4470' },
-  { id: 'CAM 10', name: 'CAM 10 — Traffic Junction', location: 'Traffic Junction', video: '/videos/traffic.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL TRANSIT', threat: false, person: 'Woman #4475' },
-  { id: 'CAM 11', name: 'CAM 11 — Railway Entrance', location: 'Railway Entrance', video: '/videos/threat.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL COMMUTE', threat: false, person: 'Woman #4480' },
-  { id: 'CAM 12', name: 'CAM 12 — Temple Road', location: 'Temple Road', video: '/videos/traffic.mp4', status: 'LIVE', risk: 'CRITICAL', face: 'FEAR (98%)', behavior: 'PHYSICAL STRUGGLE', threat: true, person: 'Woman #4418' },
-  { id: 'CAM 13', name: 'CAM 13 — Bus Terminal', location: 'Bus Terminal', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL TRANSIT', threat: false, person: 'Woman #4491' },
-  { id: 'CAM 14', name: 'CAM 14 — Campus Gate', location: 'Campus Gate', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL COMMUTE', threat: false, person: 'Woman #4495' },
-  { id: 'CAM 15', name: 'CAM 15 — Main Road', location: 'Main Road', video: '/videos/traffic.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL ACTIVITY', threat: false, person: 'Woman #4501' },
-  { id: 'CAM 16', name: 'CAM 16 — Public Parking', location: 'Public Parking', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL COMMUTE', threat: false, person: 'Woman #4509' },
+export const EIGHT_CCTV_FEEDS = [
+  {
+    id: 'CAM 01',
+    name: 'CAM 01 — Central Bus Stand',
+    location: 'Central Bus Stand',
+    video: '/videos/bus_stand.mp4',
+    status: 'LIVE',
+    risk: 'HIGH',
+    face: 'DISTRESS (88%)',
+    behavior: 'FOLLOWING (0.8m)',
+    threat: true,
+    person: 'Woman #4412',
+    fps: 30
+  },
+  {
+    id: 'CAM 02',
+    name: 'CAM 02 — Main Junction',
+    location: 'Main Junction',
+    video: '/videos/main_junction.mp4',
+    status: 'LIVE',
+    risk: 'LOW',
+    face: 'NORMAL',
+    behavior: 'NORMAL ACTIVITY',
+    threat: false,
+    person: 'Woman #4421',
+    fps: 30
+  },
+  {
+    id: 'CAM 03',
+    name: 'CAM 03 — Railway Station',
+    location: 'Railway Station',
+    video: '/videos/railway_station.mp4',
+    status: 'LIVE',
+    risk: 'HIGH',
+    face: 'FEAR (92%)',
+    behavior: 'CHASING VECTOR',
+    threat: true,
+    person: 'Woman #4435',
+    fps: 30
+  },
+  {
+    id: 'CAM 04',
+    name: 'CAM 04 — Market Area',
+    location: 'Market Area',
+    video: '/videos/market.mp4',
+    status: 'LIVE',
+    risk: 'CRITICAL',
+    face: 'FEAR (95%)',
+    behavior: 'STALKING VECTOR (18m)',
+    threat: true,
+    person: 'Woman #4440',
+    fps: 28
+  },
+  {
+    id: 'CAM 05',
+    name: 'CAM 05 — College Campus',
+    location: 'College Campus',
+    video: '/videos/college_campus.mp4',
+    status: 'LIVE',
+    risk: 'HIGH',
+    face: 'DISTRESS (86%)',
+    behavior: 'ISOLATED WALKWAY',
+    threat: true,
+    person: 'Woman #4419',
+    fps: 30
+  },
+  {
+    id: 'CAM 06',
+    name: 'CAM 06 — Parking Area',
+    location: 'Parking Area',
+    video: '/videos/parking_area.mp4',
+    status: 'LIVE',
+    risk: 'MEDIUM',
+    face: 'SADNESS (74%)',
+    behavior: 'LOITERING NEAR VEHICLES',
+    threat: false,
+    person: 'Woman #4462',
+    fps: 25
+  },
+  {
+    id: 'CAM 07',
+    name: 'CAM 07 — Public Street',
+    location: 'Public Street',
+    video: '/videos/public_street.mp4',
+    status: 'LIVE',
+    risk: 'LOW',
+    face: 'NORMAL',
+    behavior: 'NORMAL COMMUTE',
+    threat: false,
+    person: 'Woman #4451',
+    fps: 30
+  },
+  {
+    id: 'CAM 08',
+    name: 'CAM 08 — Bus Stop',
+    location: 'Bus Stop',
+    video: '/videos/bus_stop.mp4',
+    status: 'LIVE',
+    risk: 'LOW',
+    face: 'NORMAL',
+    behavior: 'WAITING AT SHELTER',
+    threat: false,
+    person: 'Woman #4458',
+    fps: 30
+  },
 ];
 
 export default function DashboardView({ 
   onSelectAlert, 
   onNavigateToTab,
+  onSelectCamera,
   onCaptureSnapshot 
 }) {
   const [liveTime, setLiveTime] = useState('');
@@ -59,6 +145,11 @@ export default function DashboardView({
     return () => clearInterval(timer);
   }, []);
 
+  const handleTileClick = (cam) => {
+    if (onSelectCamera) onSelectCamera(cam.id);
+    if (onNavigateToTab) onNavigateToTab('live_monitoring');
+  };
+
   // Top 5 Statistics
   const topStats = [
     { title: 'Active Cameras', value: '24', subtext: '22 Feeds Online', color: 'border-l-blue-600', icon: Video, iconBg: 'bg-blue-600' },
@@ -72,9 +163,9 @@ export default function DashboardView({
   const recentAlerts = [
     { id: 'ALT-1042', time: '11:24:10', camera: 'CAM 01', location: 'Central Bus Stand', event: 'Following & Close Trailing (0.8m)', risk: 'Critical', status: 'Dispatched' },
     { id: 'ALT-1041', time: '11:22:05', camera: 'CAM 05', location: 'College Campus', event: 'Potential Distress Indicator (Fear: 92%)', risk: 'High', status: 'Verified' },
-    { id: 'ALT-1040', time: '11:21:47', camera: 'CAM 12', location: 'Temple Road', event: 'Physical Struggle & Grab Attempt', risk: 'Critical', status: 'Dispatched' },
-    { id: 'ALT-1039', time: '11:20:31', camera: 'CAM 04', location: 'Market Area', event: 'Stalking Vector (18m Duration)', risk: 'High', status: 'Verified' },
-    { id: 'ALT-1038', time: '11:18:20', camera: 'CAM 09', location: 'Shopping Area', event: 'Aggressive Approach & Path Block', risk: 'High', status: 'Pending' },
+    { id: 'ALT-1040', time: '11:21:47', camera: 'CAM 04', location: 'Market Area', event: 'Stalking Vector (18m Duration)', risk: 'Critical', status: 'Dispatched' },
+    { id: 'ALT-1039', time: '11:18:20', camera: 'CAM 03', location: 'Railway Station', event: 'Aggressive Approach & Chasing', risk: 'High', status: 'Verified' },
+    { id: 'ALT-1038', time: '11:15:40', camera: 'CAM 06', location: 'Parking Area', event: 'Solo Female Pedestrian Loitering', risk: 'Medium', status: 'Under Watch' },
   ];
 
   const riskTrendData = [
@@ -114,36 +205,36 @@ export default function DashboardView({
         })}
       </div>
 
-      {/* 2. MAIN FEATURE — 16 CCTV FEEDS MONITOR WALL (4x4 DENSE GRID) */}
+      {/* 2. MAIN FEATURE — 8 REAL PLAYABLE CCTV VIDEO FEEDS MONITOR WALL (4x2 GRID) */}
       <div className="bg-white rounded border border-slate-200 shadow-xs p-3">
         <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-200">
           <div className="flex items-center space-x-2">
             <Video className="w-4 h-4 text-blue-700" />
             <h3 className="font-black text-slate-900 text-xs uppercase tracking-wider">
-              CCTV Surveillance Monitor Wall (16 Live Matrix Feeds)
+              Live CCTV Surveillance Matrix (8 Simultaneous Video Feeds)
             </h3>
           </div>
           <div className="flex items-center space-x-2 text-[11px] text-slate-600 font-mono">
             <span className="flex items-center space-x-1 font-bold text-emerald-700">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>16 / 16 STREAMING</span>
+              <span>8 / 8 REAL-TIME FEEDS ACTIVE</span>
             </span>
             <span>•</span>
-            <span>H.265 / 1080p</span>
+            <span className="text-slate-400">Click any tile to inspect in detail</span>
           </div>
         </div>
 
-        {/* 4x4 Grid of CCTV Video Tiles */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {ALL_16_CAMERAS.map((cam) => {
+        {/* 8-Camera Video Grid (4x2 Layout) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          {EIGHT_CCTV_FEEDS.map((cam) => {
             const isCritical = cam.risk === 'CRITICAL';
             const isHigh = cam.risk === 'HIGH';
 
             return (
               <div
                 key={cam.id}
-                onClick={() => onNavigateToTab && onNavigateToTab('live_monitoring')}
-                className={`bg-black rounded border overflow-hidden transition-all relative flex flex-col cursor-pointer group ${
+                onClick={() => handleTileClick(cam)}
+                className={`bg-black rounded border overflow-hidden transition-all relative flex flex-col cursor-pointer group shadow-xs ${
                   isCritical 
                     ? 'border-red-600 ring-2 ring-red-600' 
                     : isHigh 
@@ -156,14 +247,14 @@ export default function DashboardView({
                   isCritical ? 'bg-red-950 text-red-200 border-red-800' : isHigh ? 'bg-orange-950 text-orange-200 border-orange-800' : 'bg-[#0b1b30] text-slate-300 border-slate-800'
                 }`}>
                   <span className="font-bold truncate">{cam.id} — {cam.location}</span>
-                  <span className={`px-1 py-0.2 rounded text-[8px] font-black uppercase ${
+                  <span className={`px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${
                     isCritical ? 'bg-red-600 text-white animate-pulse' : isHigh ? 'bg-orange-600 text-white' : 'bg-emerald-700 text-white'
                   }`}>
                     {cam.risk}
                   </span>
                 </div>
 
-                {/* CCTV Video Stream Frame */}
+                {/* CCTV Real Video Stream Player */}
                 <div className="relative aspect-video bg-slate-950 overflow-hidden flex items-center justify-center">
                   <video
                     src={cam.video}
@@ -203,21 +294,26 @@ export default function DashboardView({
                     )}
                   </svg>
 
-                  {/* Top-Left: LIVE Badge & Time */}
+                  {/* Top-Left: LIVE Badge & Real-Time Clock */}
                   <div className="absolute top-1.5 left-1.5 flex items-center space-x-1 z-20">
-                    <span className="bg-emerald-600/90 text-white text-[8px] font-bold px-1 py-0.2 rounded">
+                    <span className="bg-emerald-600 text-white text-[8px] font-bold px-1.5 py-0.2 rounded shadow-xs">
                       ● LIVE
                     </span>
-                    <span className="bg-slate-900/80 text-white font-mono text-[8px] px-1 py-0.2 rounded">
+                    <span className="bg-slate-900/90 text-white font-mono text-[8px] px-1.5 py-0.2 rounded">
                       {liveTime}
                     </span>
                   </div>
 
-                  {/* Hover Inspect Icon */}
+                  {/* Top-Right: Telemetry */}
+                  <div className="absolute top-1.5 right-1.5 bg-slate-900/80 text-white font-mono text-[8px] px-1 py-0.2 rounded z-20">
+                    {cam.fps} FPS
+                  </div>
+
+                  {/* Hover Inspect Overlay */}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-30 pointer-events-none">
-                    <span className="bg-slate-900/90 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center space-x-1">
-                      <Eye className="w-3 h-3" />
-                      <span>Inspect Feed</span>
+                    <span className="bg-blue-600 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center space-x-1 shadow-lg">
+                      <Maximize2 className="w-3 h-3" />
+                      <span>Open Live Monitor</span>
                     </span>
                   </div>
                 </div>
