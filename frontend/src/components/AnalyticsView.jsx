@@ -17,205 +17,197 @@ import {
 } from 'recharts';
 import { 
   Download, 
-  Calendar, 
   TrendingUp, 
   ShieldCheck, 
   Clock, 
-  Filter 
+  Filter,
+  Users,
+  ShieldAlert,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function AnalyticsView() {
-  const [timeRange, setTimeRange] = useState('7d'); // '24h', '7d', '30d'
+  const [timeRange, setTimeRange] = useState('7d');
 
-  // Hourly Incident Peak Trend Data (24 hrs)
-  const hourlyData = [
-    { hour: '00:00', alerts: 1, people: 12, vehicles: 25 },
-    { hour: '02:00', alerts: 0, people: 4, vehicles: 10 },
-    { hour: '04:00', alerts: 1, people: 8, vehicles: 18 },
-    { hour: '06:00', alerts: 2, people: 45, vehicles: 85 },
-    { hour: '08:00', alerts: 3, people: 120, vehicles: 210 },
-    { hour: '10:00', alerts: 4, people: 180, vehicles: 290 },
-    { hour: '12:00', alerts: 3, people: 140, vehicles: 240 },
-    { hour: '14:00', alerts: 2, people: 110, vehicles: 190 },
-    { hour: '16:00', alerts: 4, people: 175, vehicles: 280 },
-    { hour: '18:00', alerts: 5, people: 240, vehicles: 340 },
-    { hour: '20:00', alerts: 6, people: 210, vehicles: 260 },
-    { hour: '22:00', alerts: 4, people: 85, vehicles: 110 },
+  // 1. 24h Risk, Distress & Harassment Trend
+  const hourlyTrend = [
+    { hour: '00:00', distress: 1, harassment: 0, totalRisk: 1 },
+    { hour: '04:00', distress: 1, harassment: 1, totalRisk: 2 },
+    { hour: '08:00', distress: 3, harassment: 2, totalRisk: 5 },
+    { hour: '12:00', distress: 4, harassment: 3, totalRisk: 7 },
+    { hour: '16:00', distress: 6, harassment: 4, totalRisk: 10 },
+    { hour: '18:00', distress: 8, harassment: 5, totalRisk: 13 },
+    { hour: '20:00', distress: 7, harassment: 4, totalRisk: 11 },
+    { hour: '22:00', distress: 3, harassment: 2, totalRisk: 5 },
   ];
 
-  // 7-Day Detection Comparison (People vs Animals vs Vehicles)
-  const dailyDetectionsData = [
-    { day: 'Mon', people: 1420, animals: 145, vehicles: 2890 },
-    { day: 'Tue', people: 1560, animals: 160, vehicles: 3100 },
-    { day: 'Wed', people: 1490, animals: 130, vehicles: 2950 },
-    { day: 'Thu', people: 1680, animals: 175, vehicles: 3420 },
-    { day: 'Fri', people: 1850, animals: 190, vehicles: 3800 },
-    { day: 'Sat', people: 2100, animals: 210, vehicles: 4100 },
-    { day: 'Sun', people: 1980, animals: 180, vehicles: 3600 },
+  // 2. Camera-Wise Incidents
+  const cameraIncidents = [
+    { cam: 'CAM 01 (Bus Stand)', incidents: 18, critical: 4 },
+    { cam: 'CAM 04 (Market)', incidents: 14, critical: 3 },
+    { cam: 'CAM 05 (Campus)', incidents: 12, critical: 2 },
+    { cam: 'CAM 12 (Temple Rd)', incidents: 9, critical: 2 },
+    { cam: 'CAM 03 (Railway)', incidents: 8, critical: 1 },
+    { cam: 'CAM 09 (Shopping)', incidents: 7, critical: 1 },
   ];
 
-  // Risk Distribution Across City Wards / Zones
-  const wardRiskData = [
-    { ward: 'Sector 1 (Central)', low: 12, medium: 8, high: 4, critical: 2 },
-    { ward: 'Sector 2 (North Gate)', low: 18, medium: 5, high: 2, critical: 1 },
-    { ward: 'Sector 3 (Transit/Rail)', low: 9, medium: 14, high: 7, critical: 3 },
-    { ward: 'Sector 4 (Highway Loop)', low: 22, medium: 6, high: 3, critical: 0 },
-    { ward: 'Sector 5 (Subways)', low: 5, medium: 9, high: 5, critical: 2 },
+  // 3. Risk Distribution
+  const riskDistribution = [
+    { name: 'Critical Risk', value: 8, color: '#991b1b' },
+    { name: 'High Risk', value: 18, color: '#ef4444' },
+    { name: 'Medium Risk', value: 34, color: '#f59e0b' },
+    { name: 'Low / Normal', value: 40, color: '#10b981' },
   ];
 
-  // Category Breakdown
-  const categoryPieData = [
-    { name: 'Human Safety (Distress/Struggle)', value: 42, color: '#3b82f6' },
-    { name: 'Animal & Road Hazards', value: 28, color: '#f97316' },
-    { name: 'Public Loitering / Suspicious Trailing', value: 20, color: '#eab308' },
-    { name: 'Traffic Obstruction / Accidents', value: 10, color: '#ef4444' },
+  // 4. Verified vs False Alerts (Officer Triage)
+  const verificationData = [
+    { day: 'Mon', verified: 14, falseAlarm: 2 },
+    { day: 'Tue', verified: 18, falseAlarm: 1 },
+    { day: 'Wed', verified: 15, falseAlarm: 3 },
+    { day: 'Thu', verified: 21, falseAlarm: 2 },
+    { day: 'Fri', verified: 24, falseAlarm: 2 },
+    { day: 'Sat', verified: 28, falseAlarm: 3 },
+    { day: 'Sun', verified: 22, falseAlarm: 1 },
   ];
 
   return (
-    <div className="space-y-4 select-none">
+    <div className="space-y-3 select-none">
       
       {/* Header Bar */}
-      <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white rounded border border-slate-200 p-3 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-2">
         <div>
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Surveillance Analytics & Risk Intelligence</h3>
-          <p className="text-xs text-slate-500 mt-0.5">Automated statistical telemetry and pattern assessment across municipal sectors.</p>
+          <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center space-x-2">
+            <TrendingUp className="w-4 h-4 text-blue-700" />
+            <span>Surveillance Intelligence & Pattern Analytics</span>
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">Statistical risk modeling, distress trends, camera hotspots, and duty officer verification rates.</p>
         </div>
 
         <div className="flex items-center space-x-2">
-          {/* Time Range Selector */}
-          <div className="flex bg-slate-100 p-0.5 rounded border border-slate-200 text-xs">
-            {[
-              { id: '24h', label: 'Last 24 Hrs' },
-              { id: '7d', label: 'Last 7 Days' },
-              { id: '30d', label: 'Last 30 Days' },
-            ].map(range => (
+          <div className="flex bg-slate-100 p-0.5 rounded border border-slate-200 text-xs font-semibold">
+            {['24h', '7d', '30d'].map(r => (
               <button
-                key={range.id}
-                onClick={() => setTimeRange(range.id)}
-                className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
-                  timeRange === range.id ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                key={r}
+                onClick={() => setTimeRange(r)}
+                className={`px-2.5 py-1 rounded text-xs transition-all cursor-pointer ${
+                  timeRange === r ? 'bg-white text-blue-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {range.label}
+                {r.toUpperCase()}
               </button>
             ))}
           </div>
 
-          <button 
-            className="flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-xs font-semibold transition-colors cursor-pointer"
+          <button
             onClick={() => window.print()}
+            className="flex items-center space-x-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-xs font-semibold cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Print Report</span>
+            <span>Export PDF</span>
           </button>
         </div>
       </div>
 
-      {/* Top 3 Metric Highlight Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-xs flex items-center justify-between">
+      {/* Top 3 Summary Highlight Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="bg-white rounded border border-slate-200 p-3 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Average Dispatch Response</span>
-            <span className="text-2xl font-black text-slate-900 font-mono mt-1 block">3m 42s</span>
-            <span className="text-xs text-emerald-700 font-medium">↓ 18% faster than baseline</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Average Interception ETA</span>
+            <span className="text-xl font-black text-slate-900 font-mono mt-0.5 block">3m 42s</span>
+            <span className="text-[11px] text-emerald-700 font-semibold">↓ 18% faster than baseline</span>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
-            <Clock className="w-6 h-6" />
+          <div className="p-2.5 bg-blue-50 text-blue-700 rounded">
+            <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-xs flex items-center justify-between">
+        <div className="bg-white rounded border border-slate-200 p-3 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">AI Incident Verification Accuracy</span>
-            <span className="text-2xl font-black text-slate-900 font-mono mt-1 block">94.8%</span>
-            <span className="text-xs text-emerald-700 font-medium">Validated by Duty Officers</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">AI Verification Accuracy</span>
+            <span className="text-xl font-black text-slate-900 font-mono mt-0.5 block">94.8%</span>
+            <span className="text-[11px] text-emerald-700 font-semibold">Validated by Police Duty Officers</span>
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-            <ShieldCheck className="w-6 h-6" />
+          <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded">
+            <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-xs flex items-center justify-between">
+        <div className="bg-white rounded border border-slate-200 p-3 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Risk Events Prevented</span>
-            <span className="text-2xl font-black text-slate-900 font-mono mt-1 block">48</span>
-            <span className="text-xs text-blue-700 font-medium">Early proactive interventions</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Distress & Stalking Interventions</span>
+            <span className="text-xl font-black text-slate-900 font-mono mt-0.5 block">48 Cases</span>
+            <span className="text-[11px] text-purple-700 font-semibold">Proactive patrol responses</span>
           </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
-            <TrendingUp className="w-6 h-6" />
+          <div className="p-2.5 bg-purple-50 text-purple-700 rounded">
+            <ShieldAlert className="w-5 h-5" />
           </div>
         </div>
       </div>
 
-      {/* Row 2: Hourly Peak Trend (Left) & Category Breakdown Donut (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      {/* Row 2: 24h Multi-Factor Threat Trend (7 cols) & Risk Distribution (5 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
         
-        {/* Hourly Trend Chart (7 cols) */}
-        <div className="lg:col-span-7 bg-white rounded-lg border border-slate-200 p-4 shadow-xs">
-          <div className="flex justify-between items-center mb-3">
-            <div>
-              <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Hourly Incident Peak Trend</h4>
-              <p className="text-[11px] text-slate-400">Peak safety alerts correlate with 18:00–22:00 evening rush.</p>
-            </div>
-            <span className="text-[10px] bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded">24-Hour Curve</span>
+        {/* Trend Area Chart (7 cols) */}
+        <div className="lg:col-span-7 bg-white rounded border border-slate-200 p-3 shadow-xs">
+          <div className="flex justify-between items-center mb-2 pb-1.5 border-b border-slate-200">
+            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+              24-Hour Distress & Harassment Anomaly Trend
+            </h4>
+            <span className="text-[10px] font-mono text-slate-500">Peak: 18:00–21:00</span>
           </div>
-
-          <div className="h-64 w-full">
+          <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={hourlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorAlerts" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0}/>
-                  </linearGradient>
-                </defs>
+              <AreaChart data={hourlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '6px', fontSize: '11px' }} />
-                <Area type="monotone" dataKey="alerts" stroke="#1d4ed8" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAlerts)" name="Risk Alerts" />
+                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '4px', fontSize: '10px' }} />
+                <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }} />
+                <Area type="monotone" dataKey="distress" stroke="#f59e0b" fill="#fef3c7" name="Facial Distress" />
+                <Area type="monotone" dataKey="harassment" stroke="#ef4444" fill="#fee2e2" name="Harassment / Following" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Category Breakdown Donut Chart (5 cols) */}
-        <div className="lg:col-span-5 bg-white rounded-lg border border-slate-200 p-4 shadow-xs flex flex-col justify-between">
+        {/* Risk Distribution Donut (5 cols) */}
+        <div className="lg:col-span-5 bg-white rounded border border-slate-200 p-3 shadow-xs flex flex-col justify-between">
           <div>
-            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-1">
-              Alert Category Breakdown
-            </h4>
-            <p className="text-[11px] text-slate-400 mb-3">Distribution of verified safety anomalies.</p>
-
+            <div className="flex justify-between items-center mb-2 pb-1.5 border-b border-slate-200">
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                Overall Risk Severity Spectrum
+              </h4>
+              <span className="text-[10px] font-mono text-slate-500">100 Cases</span>
+            </div>
             <div className="h-44 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={categoryPieData}
+                    data={riskDistribution}
                     cx="50%"
                     cy="50%"
-                    innerRadius={38}
-                    outerRadius={65}
+                    innerRadius={36}
+                    outerRadius={60}
                     paddingAngle={3}
                     dataKey="value"
                   >
-                    {categoryPieData.map((entry, index) => (
+                    {riskDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '6px', fontSize: '11px' }} />
+                  <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '4px' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="space-y-1.5 text-xs pt-2 border-t border-slate-100">
-            {categoryPieData.map(item => (
+          <div className="space-y-1 text-xs pt-1.5 border-t border-slate-100">
+            {riskDistribution.map(item => (
               <div key={item.name} className="flex items-center justify-between text-[11px]">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }}></span>
-                  <span className="text-slate-700 truncate max-w-[200px]">{item.name}</span>
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
+                  <span className="text-slate-700">{item.name}</span>
                 </div>
-                <span className="font-bold text-slate-900">{item.value}%</span>
+                <span className="font-bold text-slate-900 font-mono">{item.value}%</span>
               </div>
             ))}
           </div>
@@ -223,44 +215,42 @@ export default function AnalyticsView() {
 
       </div>
 
-      {/* Row 3: Detection Volume (People vs Animals vs Vehicles) & Ward Risk Comparison */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      {/* Row 3: Camera Hotspots (6 cols) & Verified vs False Alerts (6 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
         
-        {/* Detection Volume Over 7 Days (6 cols) */}
-        <div className="lg:col-span-6 bg-white rounded-lg border border-slate-200 p-4 shadow-xs">
-          <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2">
-            Weekly Detection Volume Comparison
+        {/* Camera Hotspots (6 cols) */}
+        <div className="lg:col-span-6 bg-white rounded border border-slate-200 p-3 shadow-xs">
+          <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2 pb-1.5 border-b border-slate-200">
+            Camera-Wise Incident Density
           </h4>
-          <div className="h-56 w-full">
+          <div className="h-48 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyDetectionsData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '6px', fontSize: '11px' }} />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                <Bar dataKey="people" fill="#9333ea" name="People" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="vehicles" fill="#3b82f6" name="Vehicles" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="animals" fill="#f97316" name="Animals" radius={[3, 3, 0, 0]} />
+              <BarChart data={cameraIncidents} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey="cam" tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '4px' }} />
+                <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }} />
+                <Bar dataKey="incidents" fill="#3b82f6" name="Total Incidents" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="critical" fill="#ef4444" name="Critical Events" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Sector Risk Distribution (6 cols) */}
-        <div className="lg:col-span-6 bg-white rounded-lg border border-slate-200 p-4 shadow-xs">
-          <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2">
-            Risk Severity Across City Sectors
+        {/* Verified vs False Alerts (6 cols) */}
+        <div className="lg:col-span-6 bg-white rounded border border-slate-200 p-3 shadow-xs">
+          <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2 pb-1.5 border-b border-slate-200">
+            Officer Verification & Ground Truth Validation
           </h4>
-          <div className="h-56 w-full">
+          <div className="h-48 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={wardRiskData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <XAxis dataKey="ward" tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '6px', fontSize: '11px' }} />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                <Bar dataKey="medium" fill="#eab308" name="Medium Risk" stackId="a" />
-                <Bar dataKey="high" fill="#f97316" name="High Risk" stackId="a" />
-                <Bar dataKey="critical" fill="#ef4444" name="Critical Risk" stackId="a" radius={[3, 3, 0, 0]} />
+              <BarChart data={verificationData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey="day" tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '4px' }} />
+                <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }} />
+                <Bar dataKey="verified" fill="#10b981" name="Verified Threats" stackId="a" />
+                <Bar dataKey="falseAlarm" fill="#94a3b8" name="False Alarms Dismissed" stackId="a" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

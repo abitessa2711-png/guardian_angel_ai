@@ -1,179 +1,112 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Video, 
   Users, 
   Scan, 
   ShieldAlert, 
   AlertOctagon, 
+  Camera, 
+  Maximize2, 
   ChevronRight,
   Info,
-  ExternalLink
+  Send,
+  CheckCircle2,
+  Clock,
+  Eye
 } from 'lucide-react';
 import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer, 
   BarChart, 
   Bar, 
   XAxis, 
   YAxis, 
-  Tooltip 
+  Tooltip, 
+  ResponsiveContainer 
 } from 'recharts';
-import LiveCameraFeed from './LiveCameraFeed';
+
+export const ALL_16_CAMERAS = [
+  { id: 'CAM 01', name: 'CAM 01 — Central Bus Stand', location: 'Central Bus Stand', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'HIGH', face: 'DISTRESS (88%)', behavior: 'FOLLOWING (0.8m)', threat: true, person: 'Woman #4412' },
+  { id: 'CAM 02', name: 'CAM 02 — Main Junction', location: 'Main Junction', video: '/videos/traffic.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL ACTIVITY', threat: false, person: 'Woman #4421' },
+  { id: 'CAM 03', name: 'CAM 03 — Railway Station', location: 'Railway Station', video: '/videos/threat.mp4', status: 'LIVE', risk: 'HIGH', face: 'FEAR (92%)', behavior: 'CHASING VECTOR', threat: true, person: 'Woman #4435' },
+  { id: 'CAM 04', name: 'CAM 04 — Market Area', location: 'Market Area', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'CRITICAL', face: 'FEAR (95%)', behavior: 'STALKING (18m)', threat: true, person: 'Woman #4440' },
+  { id: 'CAM 05', name: 'CAM 05 — College Campus', location: 'College Campus', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'HIGH', face: 'DISTRESS (86%)', behavior: 'ISOLATED WALKWAY', threat: true, person: 'Woman #4419' },
+  { id: 'CAM 06', name: 'CAM 06 — Public Street', location: 'Public Street', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL COMMUTE', threat: false, person: 'Woman #4451' },
+  { id: 'CAM 07', name: 'CAM 07 — Bus Stop', location: 'Bus Stop', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'WAITING TRANSIT', threat: false, person: 'Woman #4458' },
+  { id: 'CAM 08', name: 'CAM 08 — Parking Area', location: 'Parking Area', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'MEDIUM', face: 'SADNESS (74%)', behavior: 'LOITERING NEAR CARS', threat: false, person: 'Woman #4462' },
+  { id: 'CAM 09', name: 'CAM 09 — Shopping Area', location: 'Shopping Area', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'HIGH', face: 'ANGER / FEAR', behavior: 'AGGRESSIVE APPROACH', threat: true, person: 'Woman #4470' },
+  { id: 'CAM 10', name: 'CAM 10 — Traffic Junction', location: 'Traffic Junction', video: '/videos/traffic.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL TRANSIT', threat: false, person: 'Woman #4475' },
+  { id: 'CAM 11', name: 'CAM 11 — Railway Entrance', location: 'Railway Entrance', video: '/videos/threat.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL COMMUTE', threat: false, person: 'Woman #4480' },
+  { id: 'CAM 12', name: 'CAM 12 — Temple Road', location: 'Temple Road', video: '/videos/traffic.mp4', status: 'LIVE', risk: 'CRITICAL', face: 'FEAR (98%)', behavior: 'PHYSICAL STRUGGLE', threat: true, person: 'Woman #4418' },
+  { id: 'CAM 13', name: 'CAM 13 — Bus Terminal', location: 'Bus Terminal', video: '/videos/crowd.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL TRANSIT', threat: false, person: 'Woman #4491' },
+  { id: 'CAM 14', name: 'CAM 14 — Campus Gate', location: 'Campus Gate', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL COMMUTE', threat: false, person: 'Woman #4495' },
+  { id: 'CAM 15', name: 'CAM 15 — Main Road', location: 'Main Road', video: '/videos/traffic.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL ACTIVITY', threat: false, person: 'Woman #4501' },
+  { id: 'CAM 16', name: 'CAM 16 — Public Parking', location: 'Public Parking', video: '/videos/isolated.mp4', status: 'LIVE', risk: 'LOW', face: 'NORMAL', behavior: 'NORMAL COMMUTE', threat: false, person: 'Woman #4509' },
+];
 
 export default function DashboardView({ 
   onSelectAlert, 
   onNavigateToTab,
   onCaptureSnapshot 
 }) {
-  // Top 5 Government Summary Statistic Cards (Clean & Serious)
-  const stats = [
-    {
-      title: 'Active Cameras',
-      value: '24',
-      subtext: 'Active: 22',
-      subtextType: 'success',
-      icon: Video,
-      bgColor: 'bg-blue-600',
-    },
-    {
-      title: 'Women Detected',
-      value: '156',
-      subtext: 'Today Monitored',
-      subtextType: 'muted',
-      icon: Users,
-      bgColor: 'bg-purple-600',
-    },
-    {
-      title: 'Potential Distress',
-      value: '8',
-      subtext: 'Indicators Flagged',
-      subtextType: 'warning',
-      icon: Scan,
-      bgColor: 'bg-amber-500',
-    },
-    {
-      title: 'Active Safety Alerts',
-      value: '5',
-      subtext: 'Under Triage',
-      subtextType: 'danger',
-      icon: ShieldAlert,
-      bgColor: 'bg-orange-600',
-    },
-    {
-      title: 'High / Critical Risk',
-      value: '4',
-      subtext: 'Immediate Action',
-      subtextType: 'danger',
-      icon: AlertOctagon,
-      bgColor: 'bg-red-600',
-    },
+  const [liveTime, setLiveTime] = useState('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setLiveTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }));
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Top 5 Statistics
+  const topStats = [
+    { title: 'Active Cameras', value: '24', subtext: '22 Feeds Online', color: 'border-l-blue-600', icon: Video, iconBg: 'bg-blue-600' },
+    { title: 'Women Detected', value: '156', subtext: 'Monitored Today', color: 'border-l-purple-600', icon: Users, iconBg: 'bg-purple-600' },
+    { title: 'Potential Distress', value: '8', subtext: 'Indicators Flagged', color: 'border-l-amber-500', icon: Scan, iconBg: 'bg-amber-500' },
+    { title: 'Active Alerts', value: '5', subtext: 'Under Response', color: 'border-l-orange-600', icon: ShieldAlert, iconBg: 'bg-orange-600' },
+    { title: 'High / Critical Risk', value: '4', subtext: 'Action Required', color: 'border-l-red-600', icon: AlertOctagon, iconBg: 'bg-red-600' },
   ];
 
-  // Risk Distribution Data
-  const riskDonutData = [
-    { name: 'Critical', value: 1, color: '#991b1b' },
-    { name: 'High', value: 3, color: '#ef4444' },
-    { name: 'Medium', value: 5, color: '#f59e0b' },
-    { name: 'Low', value: 3, color: '#10b981' },
-  ];
-
-  const riskBarData = [
-    { name: 'Low', count: 3, fill: '#10b981' },
-    { name: 'Medium', count: 5, fill: '#f59e0b' },
-    { name: 'High', count: 3, fill: '#ef4444' },
-    { name: 'Critical', count: 1, fill: '#991b1b' },
-  ];
-
-  // Recent Alerts List
+  // Recent Alerts
   const recentAlerts = [
-    {
-      id: 'ALT-1042',
-      time: '11:24:10 AM',
-      risk: 'Critical',
-      event: 'Harassment: Stalking Vector & Grab Attempt',
-      camera: 'Camera 02 - Transit Terminal',
-      confidence: 0.96,
-      status: 'Dispatched'
-    },
-    {
-      id: 'ALT-1041',
-      time: '11:22:05 AM',
-      risk: 'High',
-      event: 'Potential Distress Indicator (Fear: 92%)',
-      camera: 'Camera 05 - Subway Corridor',
-      confidence: 0.92,
-      status: 'New'
-    },
-    {
-      id: 'ALT-1040',
-      time: '11:21:47 AM',
-      risk: 'Critical',
-      event: 'Aggressive Approach & Physical Struggle',
-      camera: 'Camera 07 - Srirangam South Gate',
-      confidence: 0.98,
-      status: 'Dispatched'
-    },
-    {
-      id: 'ALT-1039',
-      time: '11:20:31 AM',
-      risk: 'Medium',
-      event: 'Suspicious Interaction (Following: 18m)',
-      camera: 'Camera 09 - Gandhi Market Alley',
-      confidence: 0.88,
-      status: 'Verified'
-    },
-    {
-      id: 'ALT-1038',
-      time: '11:15:40 AM',
-      risk: 'Medium',
-      event: 'Solo Female Pedestrian Vulnerability Alert',
-      camera: 'Camera 03 - Railway Station North',
-      confidence: 0.89,
-      status: 'Resolved'
-    },
+    { id: 'ALT-1042', time: '11:24:10', camera: 'CAM 01', location: 'Central Bus Stand', event: 'Following & Close Trailing (0.8m)', risk: 'Critical', status: 'Dispatched' },
+    { id: 'ALT-1041', time: '11:22:05', camera: 'CAM 05', location: 'College Campus', event: 'Potential Distress Indicator (Fear: 92%)', risk: 'High', status: 'Verified' },
+    { id: 'ALT-1040', time: '11:21:47', camera: 'CAM 12', location: 'Temple Road', event: 'Physical Struggle & Grab Attempt', risk: 'Critical', status: 'Dispatched' },
+    { id: 'ALT-1039', time: '11:20:31', camera: 'CAM 04', location: 'Market Area', event: 'Stalking Vector (18m Duration)', risk: 'High', status: 'Verified' },
+    { id: 'ALT-1038', time: '11:18:20', camera: 'CAM 09', location: 'Shopping Area', event: 'Aggressive Approach & Path Block', risk: 'High', status: 'Pending' },
+  ];
+
+  const riskTrendData = [
+    { hour: '06:00', Low: 4, Med: 1, High: 0, Crit: 0 },
+    { hour: '08:00', Low: 12, Med: 3, High: 1, Crit: 0 },
+    { hour: '10:00', Low: 18, Med: 4, High: 2, Crit: 1 },
+    { hour: '12:00', Low: 14, Med: 5, High: 3, Crit: 1 },
+    { hour: '14:00', Low: 9, Med: 2, High: 1, Crit: 0 },
   ];
 
   return (
-    <div className="space-y-4 select-none">
+    <div className="space-y-3 select-none">
       
-      {/* Statutory Government Notice Banner */}
-      <div className="bg-slate-100 border border-slate-300 p-2.5 rounded text-xs text-slate-700 flex items-center space-x-2">
-        <Info className="w-4 h-4 text-blue-700 shrink-0" />
-        <span>
-          <strong>Ethical AI Notice:</strong> Facial emotion & movement detections are probabilistic indicators and do <strong>not independently confirm harassment or danger</strong>. All critical triggers require immediate human operator verification.
-        </span>
-      </div>
-
-      {/* 1. Top 5 Summary Statistic Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-        {stats.map((stat, idx) => {
+      {/* 1. TOP 5 COMPACT STATS */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+        {topStats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
             <div 
               key={idx}
-              className="bg-white rounded border border-slate-200 p-3.5 flex items-center space-x-3.5 shadow-xs"
+              className={`bg-white rounded border border-slate-200 p-2.5 flex items-center space-x-3 shadow-xs border-l-4 ${stat.color}`}
             >
-              <div className={`${stat.bgColor} p-3 rounded text-white shrink-0 flex items-center justify-center`}>
-                <Icon className="w-5 h-5" />
+              <div className={`${stat.iconBg} p-2 rounded text-white shrink-0`}>
+                <Icon className="w-4 h-4" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-500 truncate tracking-tight uppercase">{stat.title}</p>
-                <h3 className="text-2xl font-bold text-slate-900 tracking-tight leading-tight font-mono">{stat.value}</h3>
-                <div className="text-xs font-medium mt-0.5">
-                  {stat.subtextType === 'success' && (
-                    <span className="text-emerald-700 font-semibold">{stat.subtext}</span>
-                  )}
-                  {stat.subtextType === 'warning' && (
-                    <span className="text-amber-700 font-semibold">{stat.subtext}</span>
-                  )}
-                  {stat.subtextType === 'danger' && (
-                    <span className="text-red-700 font-bold">{stat.subtext}</span>
-                  )}
-                  {stat.subtextType === 'muted' && (
-                    <span className="text-slate-400">{stat.subtext}</span>
-                  )}
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight block truncate">
+                  {stat.title}
+                </span>
+                <div className="flex items-baseline space-x-1.5">
+                  <span className="text-xl font-black text-slate-900 font-mono leading-tight">{stat.value}</span>
+                  <span className="text-[10px] text-slate-500 font-medium truncate">{stat.subtext}</span>
                 </div>
               </div>
             </div>
@@ -181,225 +114,226 @@ export default function DashboardView({
         })}
       </div>
 
-      {/* 2. Middle Row: Live CCTV Player (Left) & Risk Overview / Recent Alerts (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
-        {/* Left Column: Live CCTV Player (7 cols) */}
-        <div className="lg:col-span-7">
-          <LiveCameraFeed onCaptureSnapshot={onCaptureSnapshot} />
+      {/* 2. MAIN FEATURE — 16 CCTV FEEDS MONITOR WALL (4x4 DENSE GRID) */}
+      <div className="bg-white rounded border border-slate-200 shadow-xs p-3">
+        <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-200">
+          <div className="flex items-center space-x-2">
+            <Video className="w-4 h-4 text-blue-700" />
+            <h3 className="font-black text-slate-900 text-xs uppercase tracking-wider">
+              CCTV Surveillance Monitor Wall (16 Live Matrix Feeds)
+            </h3>
+          </div>
+          <div className="flex items-center space-x-2 text-[11px] text-slate-600 font-mono">
+            <span className="flex items-center space-x-1 font-bold text-emerald-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>16 / 16 STREAMING</span>
+            </span>
+            <span>•</span>
+            <span>H.265 / 1080p</span>
+          </div>
         </div>
 
-        {/* Right Column: Multi-Factor Risk Assessment & Recent Alerts (5 cols) */}
-        <div className="lg:col-span-5 flex flex-col space-y-4">
-          
-          {/* Risk Overview Donut Card */}
-          <div className="bg-white rounded border border-slate-200 p-4 shadow-xs">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
-                Risk Overview
-              </h4>
-              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono font-bold">12 Total Alerts</span>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              {/* Donut Chart with Center Total */}
-              <div className="relative w-36 h-36 shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={riskDonutData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={42}
-                      outerRadius={62}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {riskDonutData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                {/* Center Text */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[9px] text-slate-400 uppercase font-bold">Total</span>
-                  <span className="text-base font-black text-slate-900 leading-none">12</span>
-                  <span className="text-[9px] text-slate-500 font-semibold">Alerts</span>
+        {/* 4x4 Grid of CCTV Video Tiles */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {ALL_16_CAMERAS.map((cam) => {
+            const isCritical = cam.risk === 'CRITICAL';
+            const isHigh = cam.risk === 'HIGH';
+
+            return (
+              <div
+                key={cam.id}
+                onClick={() => onNavigateToTab && onNavigateToTab('live_monitoring')}
+                className={`bg-black rounded border overflow-hidden transition-all relative flex flex-col cursor-pointer group ${
+                  isCritical 
+                    ? 'border-red-600 ring-2 ring-red-600' 
+                    : isHigh 
+                    ? 'border-orange-500 ring-1 ring-orange-500' 
+                    : 'border-slate-800 hover:border-blue-500'
+                }`}
+              >
+                {/* Tile Header Bar */}
+                <div className={`px-2 py-1 flex items-center justify-between text-[10px] font-mono border-b ${
+                  isCritical ? 'bg-red-950 text-red-200 border-red-800' : isHigh ? 'bg-orange-950 text-orange-200 border-orange-800' : 'bg-[#0b1b30] text-slate-300 border-slate-800'
+                }`}>
+                  <span className="font-bold truncate">{cam.id} — {cam.location}</span>
+                  <span className={`px-1 py-0.2 rounded text-[8px] font-black uppercase ${
+                    isCritical ? 'bg-red-600 text-white animate-pulse' : isHigh ? 'bg-orange-600 text-white' : 'bg-emerald-700 text-white'
+                  }`}>
+                    {cam.risk}
+                  </span>
+                </div>
+
+                {/* CCTV Video Stream Frame */}
+                <div className="relative aspect-video bg-slate-950 overflow-hidden flex items-center justify-center">
+                  <video
+                    src={cam.video}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover brightness-95 contrast-105"
+                  />
+
+                  {/* Overlaid Thin Computer Vision Bounding Boxes (SVG) */}
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    {/* Person / Woman Detection Box */}
+                    <rect x="25" y="32" width="14" height="38" fill="none" stroke="#10b981" strokeWidth="0.8" rx="0.5" />
+                    <rect x="25" y="27.5" width="18" height="4" fill="#10b981" rx="0.3" />
+                    <text x="34" y="30.5" fill="#ffffff" fontSize="2.4" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">
+                      {cam.person}
+                    </text>
+
+                    {/* Facial Expression Box & Indicator */}
+                    <rect x="29" y="34" width="6" height="7" fill="none" stroke="#ef4444" strokeWidth="0.6" rx="0.3" />
+                    <rect x="20" y="22.5" width="28" height="4" fill={cam.threat ? '#ef4444' : '#10b981'} rx="0.3" />
+                    <text x="34" y="25.5" fill="#ffffff" fontSize="2.2" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">
+                      FACE: {cam.face}
+                    </text>
+
+                    {/* Threat Behavior Vector if threat active */}
+                    {cam.threat && (
+                      <>
+                        <rect x="8" y="34" width="13" height="40" fill="none" stroke="#f97316" strokeWidth="0.8" strokeDasharray="1.5, 0.5" rx="0.5" />
+                        <line x1="21" y1="52" x2="25" y2="52" stroke="#ef4444" strokeWidth="0.8" strokeDasharray="1, 0.5" />
+                        <rect x="6" y="75" width="34" height="4.5" fill="#991b1b" rx="0.3" />
+                        <text x="23" y="78.2" fill="#ffffff" fontSize="2.2" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">
+                          {cam.behavior}
+                        </text>
+                      </>
+                    )}
+                  </svg>
+
+                  {/* Top-Left: LIVE Badge & Time */}
+                  <div className="absolute top-1.5 left-1.5 flex items-center space-x-1 z-20">
+                    <span className="bg-emerald-600/90 text-white text-[8px] font-bold px-1 py-0.2 rounded">
+                      ● LIVE
+                    </span>
+                    <span className="bg-slate-900/80 text-white font-mono text-[8px] px-1 py-0.2 rounded">
+                      {liveTime}
+                    </span>
+                  </div>
+
+                  {/* Hover Inspect Icon */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-30 pointer-events-none">
+                    <span className="bg-slate-900/90 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center space-x-1">
+                      <Eye className="w-3 h-3" />
+                      <span>Inspect Feed</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tile Footer Meta */}
+                <div className="bg-[#0b1b30] px-2 py-1 text-[9px] text-slate-400 font-mono flex items-center justify-between border-t border-slate-800">
+                  <span className="truncate">{cam.behavior}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onCaptureSnapshot) onCaptureSnapshot(cam);
+                    }}
+                    className="p-0.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded cursor-pointer"
+                    title="Capture Evidence Frame"
+                  >
+                    <Camera className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
+            );
+          })}
+        </div>
+      </div>
 
-              {/* Legend List */}
-              <div className="flex-1 ml-4 space-y-1.5 text-xs">
-                {riskDonutData.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between text-[11px]">
-                    <div className="flex items-center space-x-2">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }}></span>
-                      <span className="text-slate-700 font-medium">{item.name}</span>
-                    </div>
-                    <span className="font-bold text-slate-900">({item.value})</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* 3. DASHBOARD BOTTOM: RECENT ALERTS (LEFT 8 COLS) + RISK TREND (RIGHT 4 COLS) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        
+        {/* Recent Alerts Table (8 cols) */}
+        <div className="lg:col-span-8 bg-white rounded border border-slate-200 shadow-xs p-3">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
+            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-red-600" />
+              <span>Recent Incident Alerts Log</span>
+            </h4>
+            <button 
+              onClick={() => onNavigateToTab && onNavigateToTab('alerts')}
+              className="text-xs font-semibold text-blue-700 hover:text-blue-900 flex items-center space-x-0.5 cursor-pointer"
+            >
+              <span>View All Alerts</span>
+              <ChevronRight className="w-3 h-3" />
+            </button>
           </div>
 
-          {/* Recent Alerts Card */}
-          <div className="bg-white rounded border border-slate-200 p-4 shadow-xs flex-1 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-2.5">
-                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
-                  Recent Alerts
-                </h4>
-                <button 
-                  onClick={() => onNavigateToTab && onNavigateToTab('alerts')}
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center space-x-0.5 cursor-pointer"
-                >
-                  <span>View All</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="divide-y divide-slate-100">
-                {recentAlerts.map((alert) => (
-                  <div 
-                    key={alert.id}
-                    onClick={() => onSelectAlert && onSelectAlert(alert)}
-                    className="py-2 flex items-center justify-between hover:bg-slate-50 px-1 rounded transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center space-x-2 min-w-0 pr-2">
-                      <span className="text-[10px] text-slate-400 font-mono shrink-0">{alert.time}</span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase shrink-0 ${
-                        alert.risk === 'Critical' 
-                          ? 'bg-red-100 text-red-800 border border-red-300 font-black' 
-                          : alert.risk === 'High'
-                          ? 'bg-orange-100 text-orange-800 border border-orange-200'
-                          : 'bg-amber-100 text-amber-800 border border-amber-200'
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[10px] uppercase">
+                  <th className="py-1.5 px-2.5">Time</th>
+                  <th className="py-1.5 px-2">Camera</th>
+                  <th className="py-1.5 px-2.5">Location</th>
+                  <th className="py-1.5 px-2.5">Detected Event</th>
+                  <th className="py-1.5 px-2">Risk</th>
+                  <th className="py-1.5 px-2">Status</th>
+                  <th className="py-1.5 px-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-800">
+                {recentAlerts.map(alert => (
+                  <tr key={alert.id} className="hover:bg-slate-50">
+                    <td className="py-2 px-2.5 font-mono text-[11px] font-bold text-slate-700">{alert.time}</td>
+                    <td className="py-2 px-2 font-mono font-bold text-blue-800">{alert.camera}</td>
+                    <td className="py-2 px-2.5 text-slate-700 font-medium">{alert.location}</td>
+                    <td className="py-2 px-2.5 text-slate-900 font-semibold">{alert.event}</td>
+                    <td className="py-2 px-2">
+                      <span className={`px-1.5 py-0.2 rounded text-[9px] font-black uppercase ${
+                        alert.risk === 'Critical' ? 'bg-red-100 text-red-800 border border-red-300' : 'bg-orange-100 text-orange-800'
                       }`}>
                         {alert.risk}
                       </span>
-                      <span className="text-xs text-slate-900 font-semibold truncate">{alert.event}</span>
-                    </div>
-                    <span className="text-[10px] text-slate-500 font-medium shrink-0">{alert.camera.split('-')[0]}</span>
-                  </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <span className="text-[10px] font-bold text-slate-600">{alert.status}</span>
+                    </td>
+                    <td className="py-2 px-2 text-right">
+                      <button
+                        onClick={() => onSelectAlert && onSelectAlert(alert)}
+                        className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold cursor-pointer"
+                      >
+                        Inspect
+                      </button>
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* 3. Bottom Row: Risk Trend Bar Chart | Detection Summary | System Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        {/* Card 1: Risk Level Distribution Bar Chart */}
-        <div className="bg-white rounded border border-slate-200 p-4 shadow-xs">
-          <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2">
-            Risk Level Distribution
-          </h4>
-          <div className="h-44 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={riskBarData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip 
-                  cursor={{ fill: '#f8fafc' }} 
-                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '4px', fontSize: '11px' }}
-                />
-                <Bar dataKey="count" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Card 2: Detection Summary (Today) */}
-        <div className="bg-white rounded border border-slate-200 p-4 shadow-xs">
-          <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2">
-            Detection Summary (Today)
-          </h4>
-          <div className="divide-y divide-slate-100 text-xs">
-            <div className="py-1.5 flex justify-between items-center">
-              <span className="text-slate-600">Total Women Detected</span>
-              <span className="font-bold text-slate-900 font-mono">156</span>
-            </div>
-            <div className="py-1.5 flex justify-between items-center">
-              <span className="text-slate-600">Potential Distress Indicators</span>
-              <span className="font-bold text-amber-700 font-mono">8</span>
-            </div>
-            <div className="py-1.5 flex justify-between items-center">
-              <span className="text-slate-600">Harassment & Trailing Alerts</span>
-              <span className="font-bold text-red-700 font-mono">5</span>
-            </div>
-            <div className="py-1.5 flex justify-between items-center">
-              <span className="text-slate-600">Active Patrol Dispatches</span>
-              <span className="font-bold text-purple-700 font-mono">4</span>
-            </div>
-            <div className="py-1.5 flex justify-between items-center">
-              <span className="text-slate-600">Evidence Frames Vaulted</span>
-              <span className="font-bold text-blue-700 font-mono">12 Frames</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: System Status */}
-        <div className="bg-white rounded border border-slate-200 p-4 shadow-xs flex flex-col justify-between">
+        {/* Risk Trend Compact Chart (4 cols) */}
+        <div className="lg:col-span-4 bg-white rounded border border-slate-200 shadow-xs p-3 flex flex-col justify-between">
           <div>
-            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2">
-              System Status
+            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider pb-2 mb-2 border-b border-slate-200">
+              Risk Level Trend (24h)
             </h4>
-            <div className="space-y-2.5 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">Camera Network</span>
-                <div className="flex items-center space-x-1.5 text-emerald-700 font-semibold">
-                  <span>Online (22 / 24)</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">AI Pose & Emotion Models</span>
-                <div className="flex items-center space-x-1.5 text-emerald-700 font-semibold">
-                  <span>Active (18ms)</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">Evidence Vault Storage</span>
-                <div className="flex items-center space-x-1.5 text-emerald-700 font-semibold">
-                  <span>Healthy (2.4 TB)</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">System Availability</span>
-                <div className="flex items-center space-x-1.5 text-emerald-700 font-semibold">
-                  <span className="font-mono">99.85%</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                </div>
-              </div>
+            <div className="h-40 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={riskTrendData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ fontSize: '10px', padding: '4px 8px' }} />
+                  <Bar dataKey="Low" fill="#10b981" stackId="a" />
+                  <Bar dataKey="Med" fill="#f59e0b" stackId="a" />
+                  <Bar dataKey="High" fill="#f97316" stackId="a" />
+                  <Bar dataKey="Crit" fill="#ef4444" stackId="a" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-100 text-[10px] text-slate-400">
-            Tamil Nadu Police Women Safety Grid • Node #01
+          <div className="pt-2 border-t border-slate-100 text-[10px] text-slate-500 flex justify-between">
+            <span>Total Events: <strong className="text-slate-900 font-mono">68 Tracked</strong></span>
+            <span className="text-red-700 font-bold">4 High/Critical Active</span>
           </div>
         </div>
 
       </div>
-
-      {/* 4. Footer */}
-      <footer className="text-center py-2 text-xs text-slate-500 flex justify-between items-center border-t border-slate-200 pt-3">
-        <div className="flex-1 text-center">
-          © 2025 Guardian Angel AI. Women Safety Command Center.
-        </div>
-        <div className="text-[11px] text-slate-400 font-mono">
-          Version 2.0.0
-        </div>
-      </footer>
 
     </div>
   );
