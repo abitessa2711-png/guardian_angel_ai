@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Home, 
   Video, 
@@ -11,66 +11,75 @@ import {
   FileText, 
   Settings
 } from 'lucide-react';
-import { PublicSafetySeal } from './Emblem';
 
 export const NAV_ITEMS = [
-  // Section 1: Real-time Operations
-  { id: 'dashboard', label: 'Dashboard', icon: Home, section: 'core' },
-  { id: 'live_monitoring', label: 'Live Monitoring', icon: Video, badge: 'LIVE', badgeColor: 'bg-emerald-600', section: 'core' },
-  { id: 'women_safety', label: 'Women Safety', icon: ShieldAlert, badge: 4, badgeColor: 'bg-red-600', section: 'core' },
-  { id: 'alerts', label: 'Alerts & Incidents', icon: Bell, badge: 12, badgeColor: 'bg-blue-600', section: 'core' },
-  { id: 'evidence', label: 'Evidence', icon: FolderCheck, section: 'core' },
-  { id: 'analytics', label: 'Analytics', icon: TrendingUp, section: 'core' },
+  { id: 'dashboard', label: 'Dashboard', icon: Home, section: 'ops' },
+  { id: 'live_monitoring', label: 'Live Monitoring', icon: Video, section: 'ops' },
+  { id: 'women_safety', label: 'Women Safety', icon: ShieldAlert, section: 'ops' },
+  { id: 'alerts', label: 'Alerts & Incidents', icon: Bell, badge: 12, badgeColor: 'bg-red-600', section: 'ops' },
+  { id: 'evidence', label: 'Evidence', icon: FolderCheck, section: 'ops' },
+  { id: 'analytics', label: 'Analytics', icon: TrendingUp, section: 'ops' },
 
-  // Section 2: AI & Research
   { id: 'dataset', label: 'Dataset Management', icon: Database, section: 'ai' },
   { id: 'ai_training', label: 'AI Training & Evaluation', icon: Cpu, section: 'ai' },
 
-  // Section 3: System & Administration
   { id: 'reports', label: 'Reports', icon: FileText, section: 'system' },
   { id: 'settings', label: 'Settings', icon: Settings, section: 'system' },
 ];
 
 export default function Sidebar({ activeTab = 'dashboard', setActiveTab }) {
-  return (
-    <aside className="w-56 bg-[#0b1b30] text-slate-300 flex flex-col justify-between select-none border-r border-[#152742] shrink-0 min-h-[calc(100vh-53px)]">
-      
-      {/* Navigation Menu List */}
-      <div className="py-2.5 px-2 space-y-0.5">
-        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800/80 mb-1">
-          Surveillance Ops
-        </div>
+  const [lastUpdateTime, setLastUpdateTime] = useState('03:24:18 PM');
 
+  useEffect(() => {
+    const update = () => {
+      setLastUpdateTime(new Date().toLocaleTimeString('en-US', { hour12: true }));
+    };
+    update();
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <aside className="w-56 bg-[#0b1424] text-slate-300 flex flex-col justify-between select-none border-r border-[#1b2e4b] shrink-0 min-h-[calc(100vh-56px)]">
+      
+      {/* Navigation List */}
+      <div className="py-3 px-2 space-y-1">
+        
         {NAV_ITEMS.map((item, idx) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
-          const showDivider = idx === 6 || idx === 8;
+          const showAIHeader = idx === 6;
+          const showSystemDivider = idx === 8;
 
           return (
             <React.Fragment key={item.id}>
-              {showDivider && (
-                <div className="pt-2 pb-1 px-2 border-t border-slate-800/70 mt-1 mb-0.5">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                    {idx === 6 ? 'AI Engine' : 'System'}
+              {showAIHeader && (
+                <div className="pt-3 pb-1 px-2.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    AI & DATA MANAGEMENT
                   </span>
                 </div>
               )}
 
+              {showSystemDivider && (
+                <div className="my-2 border-t border-[#1b2e4b]" />
+              )}
+
               <button
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-medium transition-all duration-100 text-left cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded text-xs font-semibold transition-all duration-100 text-left cursor-pointer ${
                   isActive
-                    ? 'bg-[#1d4ed8] text-white font-bold shadow-xs'
-                    : 'text-slate-300 hover:text-white hover:bg-[#132746]'
+                    ? 'bg-[#1d4ed8] text-white font-bold shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-[#13223d]'
                 }`}
               >
-                <div className="flex items-center space-x-2 truncate">
-                  <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <div className="flex items-center space-x-2.5 truncate">
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                   <span className="tracking-wide truncate">{item.label}</span>
                 </div>
 
                 {item.badge && (
-                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full shrink-0 ${
+                  <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0 ${
                     item.badgeColor || 'bg-red-600 text-white'
                   }`}>
                     {item.badge}
@@ -82,17 +91,40 @@ export default function Sidebar({ activeTab = 'dashboard', setActiveTab }) {
         })}
       </div>
 
-      {/* Bottom Public Safety Commitment Badge */}
-      <div className="p-2.5 border-t border-[#152742] bg-[#091628]">
-        <div className="flex items-center space-x-2 px-2 py-1.5 bg-[#0d1e36] rounded border border-slate-800">
-          <PublicSafetySeal className="w-6 h-6 shrink-0" />
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-200 leading-tight">
-              Women Safety Grid
+      {/* Bottom Panel: SYSTEM STATUS */}
+      <div className="p-3 border-t border-[#1b2e4b] bg-[#08101e] space-y-2 text-xs">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+          SYSTEM STATUS
+        </span>
+
+        <div className="space-y-1.5 text-[11px]">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-400">Active Cameras</span>
+            <span className="text-emerald-400 font-bold flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>16 / 16</span>
             </span>
-            <span className="text-[9px] text-blue-400 font-medium">
-              Tamil Nadu Police
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-slate-400">AI Models</span>
+            <span className="text-emerald-400 font-bold flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>Online</span>
             </span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-slate-400">System Uptime</span>
+            <span className="text-emerald-400 font-bold flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>99.8%</span>
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center pt-1 border-t border-slate-800 text-[10px]">
+            <span className="text-slate-500">Last Update</span>
+            <span className="text-slate-300 font-mono">{lastUpdateTime}</span>
           </div>
         </div>
       </div>
