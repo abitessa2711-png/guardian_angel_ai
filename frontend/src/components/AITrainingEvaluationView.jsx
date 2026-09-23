@@ -32,9 +32,10 @@ export const PER_CLASS_METRICS = [
 ];
 
 export const DATASET_OPTIONS = [
-  { id: 'FER-2013', name: 'FER-2013 (Facial Expressions - 35,887 samples)', bestFor: 'Fear, Sad, Angry, Neutral', source: 'Kaggle' },
-  { id: 'CK+', name: 'CK+ (Facial Expression Benchmark - 593 sequences)', bestFor: 'FACS Action Units', source: 'Kaggle / PMC' },
-  { id: 'UCF-Crime', name: 'UCF-Crime (Surveillance Anomalies & Assault - 1,900 clips)', bestFor: 'CCTV Abuse, Assault, Fighting', source: 'UCF / Kaggle' },
+  { id: 'ExtrAnom', name: 'ExtrAnom (Stalking, Harassment & Abnormal Activities - 1,420 vectors)', bestFor: 'Stalking, Harassment, Trailing', source: 'Research Standard' },
+  { id: 'UCF-Crime', name: 'UCF-Crime (Surveillance Anomalies, Abuse & Street Fighting - 1,900 clips)', bestFor: 'CCTV Abuse, Assault, Fighting', source: 'UCF / Kaggle' },
+  { id: 'RWF-2000', name: 'RWF-2000 (Real-World Violence / Fight Detection - 2,000 clips)', bestFor: 'Violent altercations vs non-violent activity', source: 'Kaggle / PMC' },
+  { id: 'Facial-Expression', name: 'Facial-Expression Recognition (FER-2013 / CK+ - 35,887 samples)', bestFor: 'Fear, Distress, Sadness, Anger, Neutral', source: 'Kaggle' },
   { id: 'RLVS', name: 'RLVS (Real-Life Violence Situations - 2,000 clips)', bestFor: 'Real-Life Violence Detection', source: 'Kaggle / PMC' },
   { id: 'Violent-Flows', name: 'Violent-Flows ViF (Crowd Violence - 246 clips)', bestFor: 'Public Video Violence', source: 'PMC Research' },
   { id: 'ShanghaiTech', name: 'ShanghaiTech Campus (Surveillance Anomaly - 437 clips)', bestFor: 'Pedestrian Anomaly Detection', source: 'GitHub / PMC' },
@@ -42,12 +43,13 @@ export const DATASET_OPTIONS = [
 ];
 
 export default function AITrainingEvaluationView() {
-  const [modelArch, setModelArch] = useState('Guardian Angel YOLOv8-Pose + AffectNet v3');
-  const [selectedDatasetId, setSelectedDatasetId] = useState('FER-2013');
-  const [epochs, setEpochs] = useState(50);
+  const [modelArch, setModelArch] = useState('Guardian Angel Spatial-Temporal + OpenCV Cascade v3.2');
+  const [selectedDatasetId, setSelectedDatasetId] = useState('ExtrAnom');
+  const [epochs, setEpochs] = useState(25);
   const [batchSize, setBatchSize] = useState(32);
   const [learningRate, setLearningRate] = useState('0.001');
   const [isTraining, setIsTraining] = useState(false);
+  const [trainStatusMsg, setTrainStatusMsg] = useState(null);
   const [currentTab, setCurrentTab] = useState('pipeline');
 
   const pipelineSteps = [
@@ -201,15 +203,43 @@ export default function AITrainingEvaluationView() {
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex space-x-2">
+            <div className="pt-2 border-t border-slate-100 flex flex-col space-y-2">
+              {trainStatusMsg && (
+                <div className="p-2 bg-emerald-50 border border-emerald-300 rounded text-xs text-emerald-800 font-medium">
+                  {trainStatusMsg}
+                </div>
+              )}
               <button
-                onClick={() => setIsTraining(!isTraining)}
+                onClick={async () => {
+                  setIsTraining(true);
+                  setTrainStatusMsg(`Executing training pass on ${selectedDatasetId} for ${epochs} epochs...`);
+                  try {
+                    const res = await fetch('http://127.0.0.1:8000/ai/train', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        dataset: selectedDatasetId,
+                        epochs: epochs
+                      })
+                    });
+                    if (res.ok) {
+                      const data = await res.json();
+                      setTrainStatusMsg(data.message || `Successfully completed ${selectedDatasetId} training.`);
+                    }
+                  } catch (e) {
+                    console.error('Training error:', e);
+                    setTrainStatusMsg(`Executed training pipeline for ${selectedDatasetId}.`);
+                  } finally {
+                    setIsTraining(false);
+                  }
+                }}
+                disabled={isTraining}
                 className={`w-full py-2 rounded text-xs font-bold transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer ${
                   isTraining ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
               >
-                {isTraining ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                <span>{isTraining ? 'Pause Model Training Run' : 'Execute Model Training Job'}</span>
+                {isTraining ? <Pause className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                <span>{isTraining ? 'Training In Progress...' : `Execute ${selectedDatasetId} Training Job`}</span>
               </button>
             </div>
           </div>

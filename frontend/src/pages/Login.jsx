@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, AlertTriangle, ShieldCheck, KeyRound, UserCheck } from 'lucide-react';
-import { AshokaEmblem } from '../components/Emblem';
+import { Lock, Mail, AlertTriangle, UserCheck } from 'lucide-react';
+import guardianAngelLogo from '../assets/logo.jpg';
+import './Login.css';
 
 export default function Login() {
   const { login, error: authError } = useAuth();
@@ -50,35 +51,45 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] flex flex-col justify-between items-center px-4 py-8 select-none font-sans text-slate-800">
+    <div className="login-shell min-h-screen flex flex-col justify-between items-center px-4 py-8 select-none font-sans">
+      <div className="login-backdrop" aria-hidden="true">
+        <span className="login-wave login-wave-saffron" />
+        <span className="login-wave login-wave-saffron-secondary" />
+        <span className="login-wave login-wave-green" />
+        <span className="login-wave login-wave-green-secondary" />
+        <span className="login-chakra">
+          <span className="login-chakra-ring" />
+          {Array.from({ length: 24 }, (_, index) => (
+            <i
+              key={index}
+              className="login-chakra-spoke"
+              style={{ '--chakra-angle': `${index * 15}deg` }}
+            />
+          ))}
+        </span>
+      </div>
       
-      {/* Top Government Title Header */}
-      <div className="text-center space-y-2 max-w-lg">
-        <div className="flex justify-center">
-          <AshokaEmblem className="w-12 h-14 text-slate-800" />
-        </div>
+      <header className="login-brand text-center">
+        <img src={guardianAngelLogo} alt="Guardian Angel AI" className="login-logo" />
         <div>
-          <h1 className="text-sm font-extrabold text-slate-900 tracking-widest uppercase">
-            GOVERNMENT OF TAMIL NADU
-          </h1>
-          <h2 className="text-lg font-black text-slate-950 tracking-tight uppercase">
+          <h2 className="text-lg font-black tracking-tight uppercase">
             GUARDIAN ANGEL AI
           </h2>
-          <p className="text-xs text-slate-600 font-medium">
-            Smart Public Safety Surveillance & Early Risk Detection System
+          <p className="text-xs font-medium">
+            Women Safety & Intelligent Surveillance System
           </p>
         </div>
-      </div>
+      </header>
 
       {/* Main Login Card */}
-      <div className="bg-white border border-slate-300 max-w-md w-full rounded-lg shadow-sm overflow-hidden z-10 my-6">
+      <div className="login-card bg-white max-w-md w-full overflow-hidden z-10 my-6">
         
         {/* Card Header Bar */}
-        <div className="bg-[#0b1b30] text-white px-6 py-4 text-center border-b border-slate-700 space-y-1">
+        <div className="login-card-header text-white px-6 py-4 text-center space-y-1">
           <h3 className="text-sm font-bold tracking-wider uppercase">
             Police Control Room Secure Login
           </h3>
-          <p className="text-[11px] text-slate-300">
+          <p className="text-[11px]">
             Trichy District Surveillance Command Portal
           </p>
         </div>
@@ -95,7 +106,7 @@ export default function Login() {
 
           <div className="space-y-1">
             <label className="text-slate-700 font-bold block">
-              Official Police Email / Service ID
+              Official Service ID / Email
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
@@ -104,7 +115,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@trichypolice.gov.in"
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded text-xs text-slate-900 font-medium focus:outline-none focus:border-blue-600"
+                className="login-input w-full pl-9 pr-3 py-2 text-xs font-medium focus:outline-none"
                 required
               />
             </div>
@@ -121,7 +132,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded text-xs text-slate-900 font-medium focus:outline-none focus:border-blue-600 font-mono"
+                className="login-input w-full pl-9 pr-3 py-2 text-xs font-medium focus:outline-none font-mono"
                 required
               />
             </div>
@@ -135,7 +146,7 @@ export default function Login() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-2.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors cursor-pointer shadow-xs"
+            className="login-primary-button w-full py-2.5 text-white font-bold text-xs transition-colors cursor-pointer"
           >
             {loading ? 'Authenticating Credentials...' : 'Authenticate & Enter Control Room'}
           </button>
@@ -143,7 +154,7 @@ export default function Login() {
           <button 
             type="button"
             onClick={handleQuickDemoAccess}
-            className="w-full py-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs border border-slate-300 transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+            className="login-demo-button w-full py-2 text-slate-800 font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
           >
             <UserCheck className="w-3.5 h-3.5 text-blue-600" />
             <span>Quick Enter Demo Control Room</span>
@@ -151,7 +162,7 @@ export default function Login() {
         </form>
 
         {/* Security Warning Notice */}
-        <div className="bg-slate-50 border-t border-slate-200 p-3.5 text-center">
+        <div className="login-warning p-3.5 text-center">
           <p className="text-[10px] text-slate-500 leading-normal uppercase">
             Warning: Authorized Law Enforcement Personnel Only. Unauthorized access attempts are monitored and recorded under Section 66 of the IT Act.
           </p>
@@ -160,10 +171,10 @@ export default function Login() {
       </div>
 
       {/* Footer */}
-      <div className="text-center text-xs text-slate-500 space-y-0.5">
-        <p>© 2025 Guardian Angel AI. State Police Command & Control Grid.</p>
-        <p className="text-[10px] text-slate-400">National Informatics Centre (NIC) Compliant Architecture</p>
-      </div>
+      <footer className="login-footer text-center text-xs space-y-0.5">
+        <p>Guardian Angel AI · Public Safety Prototype</p>
+        <p className="text-[10px]">Women Safety & Intelligent Surveillance System</p>
+      </footer>
 
     </div>
   );

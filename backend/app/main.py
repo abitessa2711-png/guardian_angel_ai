@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from .database import engine, Base
 from .config import settings
-from .routers import auth, cameras, alerts, dashboard, analytics, users
+from .routers import auth, cameras, alerts, dashboard, analytics, users, ai
 from .websocket import manager
 from .ai_engine import surveillance_simulation_loop
 
@@ -49,6 +49,7 @@ app.include_router(alerts.router)  # includes /alerts and /incidents
 app.include_router(dashboard.router)
 app.include_router(analytics.router)
 app.include_router(users.router)
+app.include_router(ai.router)
 
 @app.get("/")
 def read_root():

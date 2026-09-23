@@ -17,13 +17,13 @@ export const NAV_ITEMS = [
   { id: 'live_monitoring', label: 'Live Monitoring', icon: Video, section: 'ops' },
   { id: 'women_safety', label: 'Women Safety', icon: ShieldAlert, section: 'ops' },
   { id: 'alerts', label: 'Alerts & Incidents', icon: Bell, badge: 12, badgeColor: 'bg-red-600', section: 'ops' },
-  { id: 'evidence', label: 'Evidence', icon: FolderCheck, section: 'ops' },
+  { id: 'evidence', label: 'Evidence Vault', icon: FolderCheck, section: 'ops' },
   { id: 'analytics', label: 'Analytics', icon: TrendingUp, section: 'ops' },
 
   { id: 'dataset', label: 'Dataset Management', icon: Database, section: 'ai' },
   { id: 'ai_training', label: 'AI Training & Evaluation', icon: Cpu, section: 'ai' },
 
-  { id: 'reports', label: 'Reports', icon: FileText, section: 'system' },
+  { id: 'reports', label: 'Official Reports', icon: FileText, section: 'system' },
   { id: 'settings', label: 'Settings', icon: Settings, section: 'system' },
 ];
 
@@ -40,7 +40,7 @@ export default function Sidebar({ activeTab = 'dashboard', setActiveTab }) {
   }, []);
 
   return (
-    <aside className="w-56 bg-[#0b1424] text-slate-300 flex flex-col justify-between select-none border-r border-[#1b2e4b] shrink-0 min-h-[calc(100vh-56px)]">
+    <aside className="w-60 bg-white text-slate-700 flex flex-col justify-between select-none border-r border-slate-200 shrink-0 min-h-[calc(100vh-62px)] shadow-xs">
       
       {/* Navigation List */}
       <div className="py-3 px-2 space-y-1">
@@ -54,27 +54,27 @@ export default function Sidebar({ activeTab = 'dashboard', setActiveTab }) {
           return (
             <React.Fragment key={item.id}>
               {showAIHeader && (
-                <div className="pt-3 pb-1 px-2.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    AI & DATA MANAGEMENT
+                <div className="pt-3 pb-1 px-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#000080]">
+                    AI & BENCHMARK MODELS
                   </span>
                 </div>
               )}
 
               {showSystemDivider && (
-                <div className="my-2 border-t border-[#1b2e4b]" />
+                <div className="my-2 border-t border-slate-200" />
               )}
 
               <button
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded text-xs font-semibold transition-all duration-100 text-left cursor-pointer ${
                   isActive
-                    ? 'bg-[#1d4ed8] text-white font-bold shadow-sm'
-                    : 'text-slate-300 hover:text-white hover:bg-[#13223d]'
+                    ? 'bg-[#FFF7ED] text-[#E65100] border-l-4 border-[#FF671F] font-bold shadow-xs'
+                    : 'text-slate-700 hover:text-[#000080] hover:bg-slate-50'
                 }`}
               >
                 <div className="flex items-center space-x-2.5 truncate">
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#FF671F]' : 'text-slate-500'}`} />
                   <span className="tracking-wide truncate">{item.label}</span>
                 </div>
 
@@ -92,39 +92,33 @@ export default function Sidebar({ activeTab = 'dashboard', setActiveTab }) {
       </div>
 
       {/* Bottom Panel: SYSTEM STATUS */}
-      <div className="p-3 border-t border-[#1b2e4b] bg-[#08101e] space-y-2 text-xs">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-          SYSTEM STATUS
-        </span>
+      <div className="p-3 border-t border-slate-200 bg-slate-50 space-y-2 text-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#000080] block">
+            NATIONAL GRID STATUS
+          </span>
+          <span className="w-2 h-2 rounded-full bg-[#046A38] animate-pulse" title="System Operational"></span>
+        </div>
 
         <div className="space-y-1.5 text-[11px]">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400">Active Cameras</span>
-            <span className="text-emerald-400 font-bold flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>16 / 16</span>
-            </span>
+          <div className="flex justify-between items-center text-slate-600">
+            <span>Active CCTV Feeds</span>
+            <span className="font-mono font-bold text-[#046A38]">16 / 16 Operational</span>
           </div>
 
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400">AI Models</span>
-            <span className="text-emerald-400 font-bold flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>Online</span>
-            </span>
+          <div className="flex justify-between items-center text-slate-600">
+            <span>AI Inference Engine</span>
+            <span className="font-mono font-bold text-[#046A38]">Active (OpenCV Edge)</span>
           </div>
 
-          <div className="flex justify-between items-center">
-            <span className="text-slate-400">System Uptime</span>
-            <span className="text-emerald-400 font-bold flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>99.8%</span>
-            </span>
+          <div className="flex justify-between items-center text-slate-600">
+            <span>Grid Uptime</span>
+            <span className="font-mono font-bold text-slate-900">99.8% High Availability</span>
           </div>
 
-          <div className="flex justify-between items-center pt-1 border-t border-slate-800 text-[10px]">
-            <span className="text-slate-500">Last Update</span>
-            <span className="text-slate-300 font-mono">{lastUpdateTime}</span>
+          <div className="flex justify-between items-center text-slate-500 pt-1 border-t border-slate-200 text-[10px] font-mono">
+            <span>Telemetry Pulse</span>
+            <span>{lastUpdateTime}</span>
           </div>
         </div>
       </div>

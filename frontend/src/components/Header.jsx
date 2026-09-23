@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, ChevronDown, User, LogOut, Radio, Clock, Shield } from 'lucide-react';
+import { Bell, ChevronDown, User, LogOut, Clock, Shield, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Header({ onSelectAlert, unreadCount = 12 }) {
   const { user, logout } = useAuth();
   const [timeStr, setTimeStr] = useState('03:24:18 PM');
-  const [dateStr, setDateStr] = useState('15 May 2026');
+  const [dateStr, setDateStr] = useState('22 Sep 2026');
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -28,12 +28,20 @@ export default function Header({ onSelectAlert, unreadCount = 12 }) {
   ];
 
   return (
-    <header className="bg-[#0b1424] text-white border-b border-[#1b2e4b] sticky top-0 z-50 select-none shadow-sm">
-      <div className="flex items-center justify-between px-4 py-2 h-14">
+    <header className="bg-white text-slate-900 border-b border-slate-200 sticky top-0 z-50 select-none shadow-xs">
+      
+      {/* 🇮🇳 INDIAN NATIONAL FLAG TRICOLOR TOP STRIPE RIBBON */}
+      <div className="w-full flex h-1.5 overflow-hidden">
+        <div className="flex-1 bg-[#FF671F]" title="Saffron - Courage & Strength"></div>
+        <div className="flex-1 bg-white border-y border-slate-200" title="White - Truth & Peace"></div>
+        <div className="flex-1 bg-[#046A38]" title="Green - Prosperity & Growth"></div>
+      </div>
+
+      <div className="flex items-center justify-between px-4 sm:px-6 h-15">
         
         {/* Left: Emblem + Project Title + Subtitle */}
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 p-1 border border-white/20 shrink-0">
+        <div className="flex items-center space-x-3.5">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 p-1 border border-slate-200 shrink-0 shadow-xs">
             <img 
               src="/tn-govt-seal.png" 
               alt="Government Seal" 
@@ -46,21 +54,24 @@ export default function Header({ onSelectAlert, unreadCount = 12 }) {
           </div>
           <div className="flex flex-col">
             <div className="flex items-center space-x-2">
-              <span className="font-black tracking-wider text-base text-white uppercase font-sans leading-none">
+              <span className="font-black tracking-wider text-base md:text-lg text-[#000080] uppercase font-sans leading-tight">
                 GUARDIAN ANGEL AI
               </span>
+              <span className="hidden sm:inline-block text-[9px] bg-[#FF671F]/10 text-[#FF671F] border border-[#FF671F]/30 font-bold px-1.5 py-0.2 rounded uppercase">
+                National Portal
+              </span>
             </div>
-            <span className="text-[11px] text-slate-400 font-normal tracking-wide mt-0.5">
-              Women Safety & Surveillance Control Room
+            <span className="text-[11px] text-slate-500 font-medium tracking-wide">
+              Women Safety & Smart CCTV Command Center • Government of India
             </span>
           </div>
         </div>
 
-        {/* Center: Live Control Room Red Pill Badge */}
-        <div className="hidden md:flex items-center justify-center">
-          <div className="bg-[#dc2626] text-white font-bold text-xs px-4 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center space-x-1.5">
+        {/* Center: Live Control Room Tricolor Badge */}
+        <div className="hidden lg:flex items-center justify-center">
+          <div className="bg-gradient-to-r from-[#FF671F] via-[#E65100] to-[#DC2626] text-white font-bold text-xs px-4 py-1.5 rounded-full uppercase tracking-wider shadow-xs flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
-            <span>LIVE CONTROL ROOM</span>
+            <span className="font-extrabold tracking-widest text-[11px]">LIVE CONTROL ROOM</span>
           </div>
         </div>
 
@@ -68,15 +79,15 @@ export default function Header({ onSelectAlert, unreadCount = 12 }) {
         <div className="flex items-center space-x-4 text-xs">
           
           {/* Live Date & Time */}
-          <div className="hidden sm:flex items-center space-x-3 text-slate-300 font-mono">
+          <div className="hidden sm:flex items-center space-x-3 text-slate-700 font-mono bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded">
             <div className="flex items-center space-x-1.5">
-              <span className="text-slate-400 text-[11px]">📅</span>
-              <span className="text-slate-200">{dateStr}</span>
+              <span className="text-slate-500 text-[11px]">📅</span>
+              <span className="font-semibold text-slate-800">{dateStr}</span>
             </div>
-            <span className="text-slate-600">|</span>
+            <span className="text-slate-300">|</span>
             <div className="flex items-center space-x-1.5">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span className="font-bold text-white tabular-nums">{timeStr}</span>
+              <Clock className="w-3.5 h-3.5 text-[#000080]" />
+              <span className="font-bold text-[#000080] tabular-nums">{timeStr}</span>
             </div>
           </div>
 
@@ -87,43 +98,44 @@ export default function Header({ onSelectAlert, unreadCount = 12 }) {
                 setIsNotifOpen(!isNotifOpen);
                 setIsProfileOpen(false);
               }}
-              className="relative p-1.5 text-slate-300 hover:text-white hover:bg-[#152a4a] rounded transition-colors cursor-pointer"
+              className="relative p-2 text-slate-600 hover:text-[#000080] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer border border-slate-200"
               title="Active Alerts"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-1 ring-[#0b1424] animate-pulse">
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white animate-pulse">
                   {unreadCount}
                 </span>
               )}
             </button>
 
+            {/* Notification Dropdown */}
             {isNotifOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-[#0f1d35] text-white rounded shadow-2xl border border-[#223b61] py-1.5 z-50 animate-in fade-in">
-                <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#1b2e4b]">
-                  <span className="font-bold text-[11px] text-slate-200 uppercase tracking-wider">Priority Safety Alerts</span>
-                  <span className="text-[10px] bg-red-600/30 text-red-400 border border-red-500/50 font-bold px-1.5 py-0.2 rounded">{unreadCount} Critical</span>
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden text-slate-800">
+                <div className="bg-slate-50 p-2.5 border-b border-slate-200 flex justify-between items-center">
+                  <span className="font-bold text-xs uppercase text-[#000080]">Active Critical Alerts</span>
+                  <span className="text-[10px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded">
+                    {unreadCount} New
+                  </span>
                 </div>
-                <div className="divide-y divide-[#1b2e4b] max-h-64 overflow-y-auto">
+                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
                   {urgentAlerts.map(alert => (
                     <div 
                       key={alert.id}
                       onClick={() => {
-                        if (onSelectAlert) onSelectAlert(alert);
                         setIsNotifOpen(false);
+                        if (onSelectAlert) onSelectAlert(alert);
                       }}
-                      className="px-3 py-2 hover:bg-[#162a4d] cursor-pointer transition-colors"
+                      className="p-2.5 hover:bg-slate-50 cursor-pointer transition-colors space-y-1"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className={`text-[9px] font-black px-1.5 py-0.2 rounded uppercase ${
-                          alert.risk === 'HIGH' ? 'bg-red-900/80 text-red-200 border border-red-600' : 'bg-orange-900/80 text-orange-200 border border-orange-600'
-                        }`}>
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-xs text-slate-900">{alert.camera}</span>
+                        <span className="text-[10px] font-mono text-red-600 font-bold bg-red-50 border border-red-200 px-1 rounded">
                           {alert.risk}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-mono">{alert.time}</span>
                       </div>
-                      <p className="text-xs font-bold text-slate-100 mt-0.5">{alert.title}</p>
-                      <p className="text-[10px] text-slate-400 font-mono">{alert.camera}</p>
+                      <p className="text-[11px] text-slate-600 leading-tight">{alert.title}</p>
+                      <span className="text-[10px] text-slate-400 font-mono block">{alert.time}</span>
                     </div>
                   ))}
                 </div>
@@ -131,42 +143,42 @@ export default function Header({ onSelectAlert, unreadCount = 12 }) {
             )}
           </div>
 
-          {/* Operator Profile */}
+          {/* User Profile Pill */}
           <div className="relative">
             <button
               onClick={() => {
                 setIsProfileOpen(!isProfileOpen);
                 setIsNotifOpen(false);
               }}
-              className="flex items-center space-x-2 text-slate-200 hover:text-white px-2 py-1 rounded hover:bg-[#152a4a] transition-colors cursor-pointer"
+              className="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
-              <div className="flex flex-col text-right">
-                <span className="text-xs font-bold leading-none text-white">{user?.name || 'Operator'}</span>
-                <span className="text-[10px] text-slate-400 leading-none mt-0.5">Control Room 01</span>
+              <div className="w-6 h-6 rounded-full bg-[#000080] text-white flex items-center justify-center font-bold text-[10px]">
+                {user?.name ? user.name[0].toUpperCase() : 'O'}
               </div>
-              <div className="w-7 h-7 rounded-full bg-slate-700 border border-slate-500 flex items-center justify-center text-white text-xs font-bold">
-                <User className="w-4 h-4 text-slate-200" />
+              <div className="hidden md:flex flex-col text-left">
+                <span className="font-bold text-[11px] leading-tight text-slate-800">
+                  {user?.name || 'Safety Chief Er. M. Sundaram'}
+                </span>
+                <span className="text-[9px] text-[#046A38] font-bold">
+                  ● Verified Duty Officer
+                </span>
               </div>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
             </button>
 
+            {/* Profile Dropdown */}
             {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-[#0f1d35] text-white rounded shadow-2xl border border-[#223b61] py-1.5 z-50">
-                <div className="px-3 py-2 border-b border-[#1b2e4b]">
-                  <p className="text-xs font-bold text-white">{user?.name || 'Duty Operator'}</p>
-                  <p className="text-[10px] text-slate-400 font-mono">{user?.email || 'admin@trichypolice.gov.in'}</p>
-                  <span className="inline-block mt-1 bg-blue-900/60 text-blue-300 border border-blue-600 text-[9px] font-bold px-1.5 py-0.2 rounded">
-                    Role: CONTROL ROOM 01
-                  </span>
+              <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-lg shadow-lg z-50 p-2 text-slate-800 space-y-2">
+                <div className="p-2 border-b border-slate-100 text-xs">
+                  <p className="font-bold text-slate-900">{user?.name || 'Er. M. Sundaram'}</p>
+                  <p className="text-slate-500 text-[10px]">Duty Officer • ID #TN-POL-4412</p>
                 </div>
                 <button
-                  onClick={() => {
-                    setIsProfileOpen(false);
-                    logout();
-                  }}
-                  className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-950/40 flex items-center space-x-2 font-medium cursor-pointer"
+                  onClick={() => logout && logout()}
+                  className="w-full flex items-center space-x-2 p-2 hover:bg-red-50 text-red-700 rounded text-xs cursor-pointer transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>Secure Logout</span>
+                  <span>Sign Out Control Room</span>
                 </button>
               </div>
             )}

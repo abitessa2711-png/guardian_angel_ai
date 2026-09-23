@@ -50,3 +50,12 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Video files (CCTV demo feeds)
+*.mp4
+*.avi
+*.mkv
+*.mov
+
+# Database
+*.db

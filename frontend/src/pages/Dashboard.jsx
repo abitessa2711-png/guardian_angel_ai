@@ -41,7 +41,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#08101e] flex flex-col font-sans text-slate-100 antialiased select-none">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased select-none">
       
       {/* 1. Header Matching Reference Mockup */}
       <Header 
@@ -59,7 +59,7 @@ export default function Dashboard() {
         />
 
         {/* Right Content Viewport */}
-        <main className="flex-1 overflow-y-auto p-3.5 md:p-4 bg-[#08101e]">
+        <main className="flex-1 overflow-y-auto p-3.5 md:p-4 bg-[#F8FAFC]">
           
           {/* Tab Router */}
           {activeTab === 'dashboard' && (

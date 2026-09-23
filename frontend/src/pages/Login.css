@@ -1,0 +1,271 @@
+/* ─── Indian National Flag Theme – Login Page ─── */
+:root {
+  --flag-saffron: #FF671F;
+  --flag-white:   #FFFFFF;
+  --flag-green:   #046A38;
+  --ashoka-navy:  #000080;
+  --login-paper:  #FAFCFF;
+  --login-border: #CBD5E1;
+}
+
+/* ════════════════ SHELL ════════════════ */
+.login-shell {
+  position: relative;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  box-sizing: border-box;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--flag-white);
+  color: var(--ashoka-navy);
+}
+
+.login-shell > :not(.login-backdrop) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ════════════════ BACKDROP – TRI-COLOR BANDS ════════════════ */
+.login-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ── Saffron band at the top ── */
+.login-wave-saffron {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 28%;
+  background: linear-gradient(180deg, var(--flag-saffron) 0%, #FF8C42 70%, rgba(255,103,31,0) 100%);
+  display: block;
+}
+
+.login-wave-saffron-secondary {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 18%;
+  background: var(--flag-saffron);
+  display: block;
+}
+
+/* ── Green band at the bottom ── */
+.login-wave-green {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 28%;
+  background: linear-gradient(0deg, var(--flag-green) 0%, #0A8847 70%, rgba(4,106,56,0) 100%);
+  display: block;
+}
+
+.login-wave-green-secondary {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 18%;
+  background: var(--flag-green);
+  display: block;
+}
+
+/* ── Ashoka Chakra (center-right watermark) ── */
+.login-chakra {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(260px, 32vw, 450px);
+  aspect-ratio: 1;
+  border: 6px solid rgba(0, 0, 128, 0.12);
+  border-radius: 50%;
+  opacity: 1;
+  animation: chakra-spin 120s linear infinite;
+}
+
+@keyframes chakra-spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.login-chakra-ring {
+  content: '';
+  position: absolute;
+  inset: 12%;
+  border: 3px solid rgba(0, 0, 128, 0.10);
+  border-radius: 50%;
+  display: block;
+}
+
+.login-chakra::after {
+  content: '';
+  position: absolute;
+  inset: 46%;
+  background: rgba(0, 0, 128, 0.15);
+  border-radius: 50%;
+}
+
+.login-chakra-spoke {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 44%;
+  background: rgba(0, 0, 128, 0.12);
+  transform-origin: 50% 100%;
+  transform: translate(-50%, -100%) rotate(var(--chakra-angle));
+  display: block;
+}
+
+/* ════════════════ BRAND HEADER ════════════════ */
+.login-brand {
+  max-width: 32rem;
+}
+
+.login-brand h2 {
+  color: var(--ashoka-navy);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+.login-brand p {
+  color: var(--ashoka-navy);
+  opacity: 0.75;
+}
+
+.login-footer {
+  color: var(--flag-white);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.login-logo {
+  display: block;
+  width: clamp(130px, 16vw, 185px);
+  height: auto;
+  aspect-ratio: 1;
+  margin: 0 auto 0.25rem;
+  object-fit: contain;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 0, 128, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 128, 0.12);
+}
+
+/* ════════════════ LOGIN CARD ════════════════ */
+.login-card {
+  width: min(100%, 28rem);
+  border: 1px solid var(--login-border);
+  border-radius: 0.6rem;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 128, 0.10),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* ── Tricolor top border on card ── */
+.login-card::before {
+  content: '';
+  display: block;
+  height: 4px;
+  background: linear-gradient(90deg, var(--flag-saffron) 0%, var(--flag-saffron) 33%, var(--flag-white) 33%, var(--flag-white) 66%, var(--flag-green) 66%, var(--flag-green) 100%);
+  border-radius: 0.6rem 0.6rem 0 0;
+}
+
+.login-card-header {
+  background: var(--ashoka-navy);
+  border-bottom: 3px solid var(--flag-saffron);
+}
+
+.login-card-header p {
+  color: #CBD5E1;
+}
+
+/* ════════════════ FORM INPUTS ════════════════ */
+.login-input {
+  color: #1E293B;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 0.35rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.login-input:focus {
+  border-color: var(--ashoka-navy);
+  box-shadow: 0 0 0 3px rgba(0, 0, 128, 0.10);
+}
+
+/* ════════════════ BUTTONS ════════════════ */
+.login-primary-button {
+  background: linear-gradient(135deg, var(--flag-saffron) 0%, #E65100 100%);
+  border: none;
+  border-radius: 0.35rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(255, 103, 31, 0.3);
+  transition: all 0.2s;
+}
+
+.login-primary-button:hover {
+  background: linear-gradient(135deg, #E65100 0%, #BF360C 100%);
+  box-shadow: 0 4px 12px rgba(255, 103, 31, 0.4);
+  transform: translateY(-1px);
+}
+
+.login-demo-button {
+  background: rgba(4, 106, 56, 0.08);
+  border: 1px solid rgba(4, 106, 56, 0.25);
+  border-radius: 0.35rem;
+  color: var(--flag-green);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.login-demo-button:hover {
+  background: rgba(4, 106, 56, 0.15);
+  border-color: var(--flag-green);
+}
+
+/* ════════════════ WARNING / FOOTER ════════════════ */
+.login-warning {
+  color: #64748B;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+}
+
+/* ════════════════ RESPONSIVE ════════════════ */
+@media (max-width: 640px) {
+  .login-shell {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .login-wave-saffron,
+  .login-wave-saffron-secondary {
+    height: 22%;
+  }
+
+  .login-wave-green,
+  .login-wave-green-secondary {
+    height: 22%;
+  }
+
+  .login-chakra {
+    width: 200px;
+    border-width: 5px;
+  }
+
+  .login-logo {
+    width: 120px;
+  }
+
+  .login-card {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}

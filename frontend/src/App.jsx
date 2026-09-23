@@ -10,10 +10,10 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surveillance-bg flex items-center justify-center font-mono text-xs text-surveillance-accent select-none">
+      <div className="min-h-screen bg-white flex items-center justify-center font-sans text-xs text-[#000080] select-none">
         <div className="text-center space-y-3">
-          <div className="w-8 h-8 border-2 border-surveillance-accent border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="uppercase tracking-widest animate-pulse">CONNECTING CONTROL ROOM TERMINAL CORE...</p>
+          <div className="w-8 h-8 border-2 border-[#FF671F] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="uppercase tracking-widest animate-pulse font-semibold">Initializing Guardian Angel AI...</p>
         </div>
       </div>
     );
