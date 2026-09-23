@@ -51,8 +51,7 @@ lerna-debug.log*
 *.sln
 *.sw?
 
-# Video files (CCTV demo feeds)
-*.mp4
+# Video files (allow frontend CCTV demo feeds)
 *.avi
 *.mkv
 *.mov
