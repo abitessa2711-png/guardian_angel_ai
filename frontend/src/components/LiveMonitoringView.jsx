@@ -19,6 +19,7 @@ import {
   Meh
 } from 'lucide-react';
 import { SIXTEEN_CCTV_FEEDS } from './DashboardView';
+import { API_BASE_URL } from '../context/AuthContext';
 
 export default function LiveMonitoringView({ 
   selectedCameraId = 'CAM 04',
@@ -44,6 +45,10 @@ export default function LiveMonitoringView({
   const [affectIndicator, setAffectIndicator] = useState('Normal Baseline (Calm)');
   const [aiAnalysisStatus, setAiAnalysisStatus] = useState('Standby');
   const [cctvInferenceData, setCctvInferenceData] = useState(null);
+
+  const [detectedGender, setDetectedGender] = useState('Analyzing...');
+  const [genderConfidence, setGenderConfidence] = useState(0);
+  const [ageRange, setAgeRange] = useState('');
 
   const videoRef = useRef(null);
   const cctvVideoRef = useRef(null);
@@ -159,7 +164,7 @@ export default function LiveMonitoringView({
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const base64Data = canvas.toDataURL('image/jpeg', 0.65);
 
-        const res = await fetch('http://127.0.0.1:8000/ai/analyze-face', {
+        const res = await fetch(`${API_BASE_URL}/ai/analyze-face`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ image: base64Data })
@@ -174,6 +179,10 @@ export default function LiveMonitoringView({
             setThreatScore(data.threat_score);
             setAffectIndicator(data.affect_indicator);
             setAiAnalysisStatus('Face Locked & Real-Time Tracking');
+
+            setDetectedGender(data.gender || 'Unknown');
+            setGenderConfidence(data.gender_confidence || 0);
+            setAgeRange(data.age_range || '');
 
             // Exponential Moving Average (EMA) smoothing to eliminate box jitter
             setDetectedFaceBox(prev => {
@@ -229,7 +238,7 @@ export default function LiveMonitoringView({
         ctx.drawImage(video, 0, 0, 480, 270);
         const base64Data = canvas.toDataURL('image/jpeg', 0.65);
 
-        const res = await fetch('http://127.0.0.1:8000/ai/infer-cctv', {
+        const res = await fetch(`${API_BASE_URL}/ai/infer-cctv`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -732,13 +741,18 @@ export default function LiveMonitoringView({
                 <div className="flex justify-between items-center mt-1">
                   <span className="font-bold text-slate-900 capitalize text-xs">
                     {isWebcamActive 
-                      ? (subjectType === 'female' ? 'Female / Woman' : 'Operator Subject')
+                      ? (detectedGender === 'Female' ? 'Female / Woman' : detectedGender === 'Male' ? 'Male / Man' : 'Analyzing...')
                       : (cctvInferenceData ? (cctvInferenceData.detected_persons_count > 0 ? `${cctvInferenceData.detected_persons_count} Person(s) Tracked` : 'No Pedestrians (Clear)') : `${currentCam.womenDetected === 'Yes' ? 'Woman Detected' : 'No Woman Detected'}`)}
                   </span>
                   <span className="font-mono font-bold text-[#000080]">
-                    {isWebcamActive ? `${subjectConfidence}% Conf` : (cctvInferenceData ? `${cctvInferenceData.detected_persons_count > 0 ? '94%' : '0%'} Conf` : '96% Conf')}
+                    {isWebcamActive ? `${genderConfidence}% Conf` : (cctvInferenceData ? `${cctvInferenceData.detected_persons_count > 0 ? '94%' : '0%'} Conf` : '96% Conf')}
                   </span>
                 </div>
+                {isWebcamActive && ageRange && (
+                  <div className="text-[10px] font-bold text-slate-500 mt-1">
+                    Est. Age: {ageRange}
+                  </div>
+                )}
               </div>
 
               {/* Facial Emotion */}

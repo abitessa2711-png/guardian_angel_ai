@@ -2,6 +2,7 @@ import base64
 import cv2
 import numpy as np
 import time
+import os
 from datetime import datetime
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -20,6 +21,33 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 smile_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_smile.xml')
 eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+
+# Load DNN Models
+model_dir = os.path.join(os.path.dirname(__file__), "..", "models")
+face_prototxt = os.path.join(model_dir, "deploy.prototxt")
+face_model = os.path.join(model_dir, "res10_300x300_ssd_iter_140000.caffemodel")
+gender_prototxt = os.path.join(model_dir, "gender_deploy.prototxt")
+gender_model = os.path.join(model_dir, "gender_net.caffemodel")
+age_prototxt = os.path.join(model_dir, "age_deploy.prototxt")
+age_model = os.path.join(model_dir, "age_net.caffemodel")
+
+face_net = None
+gender_net = None
+age_net = None
+
+try:
+    if os.path.exists(face_prototxt) and os.path.exists(face_model):
+        face_net = cv2.dnn.readNetFromCaffe(face_prototxt, face_model)
+    if os.path.exists(gender_prototxt) and os.path.exists(gender_model):
+        gender_net = cv2.dnn.readNetFromCaffe(gender_prototxt, gender_model)
+    if os.path.exists(age_prototxt) and os.path.exists(age_model):
+        age_net = cv2.dnn.readNetFromCaffe(age_prototxt, age_model)
+except Exception as e:
+    print(f"Error loading DNN models: {e}")
+
+MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
+gender_list = ['Male', 'Female']
+age_list = ['(0-2)', '(4-6)', '(8-12)', '(15-20)', '(25-32)', '(38-43)', '(48-53)', '(60-100)']
 
 class FaceAnalysisRequest(BaseModel):
     image: str
@@ -60,20 +88,52 @@ def analyze_face(req: FaceAnalysisRequest):
                 "threat_score": 10,
                 "affect_indicator": "Normal Baseline",
                 "box": None,
-                "features": {}
+                "features": {},
+                "gender": "Unknown",
+                "gender_confidence": 0,
+                "age_range": ""
             }
             
         h_img, w_img = img.shape[:2]
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         
-        faces = face_cascade.detectMultiScale(
-            gray, 
-            scaleFactor=1.12, 
-            minNeighbors=6, 
-            minSize=(65, 65)
-        )
+        # Face Detection using DNN (primary) or Haar (fallback)
+        x, y, w, h = 0, 0, 0, 0
+        face_found = False
         
-        if len(faces) == 0:
+        if face_net:
+            blob = cv2.dnn.blobFromImage(img, 1.0, (300, 300), (104.0, 177.0, 123.0))
+            face_net.setInput(blob)
+            detections = face_net.forward()
+            
+            best_confidence = 0
+            best_box = None
+            for i in range(detections.shape[2]):
+                confidence = detections[0, 0, i, 2]
+                if confidence > 0.5:
+                    box = detections[0, 0, i, 3:7] * np.array([w_img, h_img, w_img, h_img])
+                    (startX, startY, endX, endY) = box.astype("int")
+                    if confidence > best_confidence:
+                        best_confidence = confidence
+                        best_box = (max(0, startX), max(0, startY), min(w_img - startX, endX - startX), min(h_img - startY, endY - startY))
+            
+            if best_box:
+                x, y, w, h = best_box
+                face_found = True
+                
+        if not face_found:
+            faces = face_cascade.detectMultiScale(
+                gray, 
+                scaleFactor=1.12, 
+                minNeighbors=6, 
+                minSize=(65, 65)
+            )
+            if len(faces) > 0:
+                faces = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
+                x, y, w, h = faces[0]
+                face_found = True
+        
+        if not face_found:
             return {
                 "face_detected": False,
                 "expression": "SEARCHING",
@@ -82,15 +142,42 @@ def analyze_face(req: FaceAnalysisRequest):
                 "threat_score": 10,
                 "affect_indicator": "Position face in front of camera...",
                 "box": None,
-                "features": {}
+                "features": {},
+                "gender": "Unknown",
+                "gender_confidence": 0,
+                "age_range": ""
             }
             
-        # Select largest detected face (main user face)
-        faces = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
-        x, y, w, h = faces[0]
         roi_gray = gray[y:y+h, x:x+w]
+        face_roi = img[y:y+h, x:x+w]
+        
+        # Gender and Age Detection
+        detected_gender = "Unknown"
+        gender_conf = 0.0
+        detected_age = ""
+        
+        if gender_net and age_net and face_roi.size > 0:
+            try:
+                blob = cv2.dnn.blobFromImage(face_roi, 1.0, (227, 227), MODEL_MEAN_VALUES, swapRB=False)
+                
+                # Predict Gender
+                gender_net.setInput(blob)
+                gender_preds = gender_net.forward()
+                gender_idx = gender_preds[0].argmax()
+                detected_gender = gender_list[gender_idx]
+                gender_conf = float(gender_preds[0][gender_idx] * 100)
+                
+                # Predict Age
+                age_net.setInput(blob)
+                age_preds = age_net.forward()
+                age_idx = age_preds[0].argmax()
+                detected_age = age_list[age_idx].strip("()")
+            except Exception as e:
+                print(f"Error predicting gender/age: {e}")
         
         # Normalize face to fixed 128x128 for robust geometric & photometric metrics
+        if roi_gray.shape[0] == 0 or roi_gray.shape[1] == 0:
+            roi_gray = np.zeros((128, 128), dtype=np.uint8)
         norm_face = cv2.resize(roi_gray, (128, 128))
         norm_face = cv2.equalizeHist(norm_face)
         
@@ -98,6 +185,13 @@ def analyze_face(req: FaceAnalysisRequest):
         eyes = eye_cascade.detectMultiScale(norm_face[25:65, 15:113], scaleFactor=1.1, minNeighbors=3, minSize=(14, 14))
         eyes_count = int(len(eyes))
         
+        eye_aspect_ratio = 1.0
+        if eyes_count > 0:
+            eye_aspects = []
+            for (ex, ey, ew, eh) in eyes:
+                eye_aspects.append(float(eh) / float(ew))
+            eye_aspect_ratio = max(eye_aspects)
+            
         glabella = norm_face[15:35, 45:83]
         sobel_glabella = cv2.Sobel(glabella, cv2.CV_64F, 1, 0, ksize=3)
         brow_furrow = float(np.mean(np.abs(sobel_glabella)))
@@ -131,7 +225,8 @@ def analyze_face(req: FaceAnalysisRequest):
                         max_mouth_aspect = aspect
                         
         is_smiling = has_smile_cascade or max_mouth_aspect > 2.8
-        is_scream_distress = dark_cavity_ratio > 0.28
+        is_scream_distress = dark_cavity_ratio > 0.28 or eye_aspect_ratio > 0.65
+        is_stress = brow_furrow > 30.0
         
         # Calibrated Emotion Decision Tree
         if is_smiling:
@@ -140,19 +235,12 @@ def analyze_face(req: FaceAnalysisRequest):
             threat_score = 6
             conf = 96
             affect_indicator = "Safe / Normal (Smiling)"
-        elif is_scream_distress:
-            # Gaping open mouth in alarm / scream
+        elif is_scream_distress or (dark_cavity_ratio > 0.18 and eyes_count >= 2) or (is_stress and eye_aspect_ratio > 0.55):
+            # Gaping open mouth in alarm / scream or wide eyes + unsettled mouth / stress
             expression = "FEAR / DISTRESS"
             risk = "HIGH"
             threat_score = 88
             conf = 94
-            affect_indicator = "Facial Distress Detected (Supporting Emergency Signal)"
-        elif dark_cavity_ratio > 0.18 and eyes_count >= 2:
-            # Wide open eyes + unsettled mouth
-            expression = "FEAR / DISTRESS"
-            risk = "HIGH"
-            threat_score = 82
-            conf = 90
             affect_indicator = "Facial Distress Detected (Supporting Emergency Signal)"
         else:
             # Calm neutral baseline (DEFAULT SAFE STATE)
@@ -180,7 +268,10 @@ def analyze_face(req: FaceAnalysisRequest):
                 "mouth_open": dark_cavity_ratio > 0.22,
                 "eyes_detected": eyes_count,
                 "dark_ratio": round(dark_cavity_ratio, 3)
-            }
+            },
+            "gender": detected_gender,
+            "gender_confidence": round(gender_conf, 1),
+            "age_range": detected_age
         }
     except Exception as e:
         return {
@@ -191,7 +282,10 @@ def analyze_face(req: FaceAnalysisRequest):
             "threat_score": 10,
             "affect_indicator": str(e),
             "box": None,
-            "features": {}
+            "features": {},
+            "gender": "Unknown",
+            "gender_confidence": 0,
+            "age_range": ""
         }
 
 

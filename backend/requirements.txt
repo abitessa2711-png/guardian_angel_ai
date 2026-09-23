@@ -7,3 +7,6 @@ pyjwt
 bcrypt
 python-multipart
 websockets
+numpy
+opencv-python-headless
+requests

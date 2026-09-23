@@ -22,6 +22,7 @@ import {
   ResponsiveContainer, 
   Legend 
 } from 'recharts';
+import { API_BASE_URL } from '../context/AuthContext';
 
 export const SIXTEEN_CCTV_FEEDS = [
   { id: 1, camId: 'CAM 01', name: '01 Central Bus Stand', location: 'Bus Terminal Platform 3', womenDetected: 'Yes', threat: false, risk: 'LOW', video: '/videos/cam_01.mp4', face: 'Normal', behavior: 'Waiting / Commuting', duration: '00:04:12', confidence: 94 },
@@ -84,7 +85,7 @@ export default function DashboardView({
         ctx.drawImage(video, 0, 0, 480, 270);
         const base64Data = canvas.toDataURL('image/jpeg', 0.65);
 
-        const res = await fetch('http://127.0.0.1:8000/ai/infer-cctv', {
+        const res = await fetch(`${API_BASE_URL}/ai/infer-cctv`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

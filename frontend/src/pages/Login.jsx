@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Lock, Mail, AlertTriangle, UserCheck } from 'lucide-react';
-import guardianAngelLogo from '../assets/logo.jpg';
+import guardianAngelLogo from '../assets/logo_new.jpg';
 import './Login.css';
 
 export default function Login() {
@@ -51,7 +51,7 @@ export default function Login() {
   };
 
   return (
-    <div className="login-shell min-h-screen flex flex-col justify-between items-center px-4 py-8 select-none font-sans">
+    <div className="login-shell flex flex-col items-center justify-center px-4 select-none font-sans">
       <div className="login-backdrop" aria-hidden="true">
         <span className="login-wave login-wave-saffron" />
         <span className="login-wave login-wave-saffron-secondary" />
@@ -69,23 +69,22 @@ export default function Login() {
         </span>
       </div>
       
-      <header className="login-brand text-center">
-        <img src={guardianAngelLogo} alt="Guardian Angel AI" className="login-logo" />
-        <div>
-          <h2 className="text-lg font-black tracking-tight uppercase">
+      {/* Main Login Card — larger, centered */}
+      <div className="login-card bg-white w-full overflow-hidden z-10">
+        
+        {/* Logo + Brand inside card top */}
+        <div className="flex flex-col items-center pt-6 pb-3 px-6">
+          <img src={guardianAngelLogo} alt="Guardian Angel AI" className="login-logo" />
+          <h2 className="text-base font-black tracking-tight uppercase text-[#000080] mt-2">
             GUARDIAN ANGEL AI
           </h2>
-          <p className="text-xs font-medium">
-            Women Safety & Intelligent Surveillance System
+          <p className="text-[11px] font-medium text-[#000080]/70">
+            Proactive Women Safety & Intelligent Surveillance System
           </p>
         </div>
-      </header>
 
-      {/* Main Login Card */}
-      <div className="login-card bg-white max-w-md w-full overflow-hidden z-10 my-6">
-        
         {/* Card Header Bar */}
-        <div className="login-card-header text-white px-6 py-4 text-center space-y-1">
+        <div className="login-card-header text-white px-6 py-3.5 text-center space-y-1">
           <h3 className="text-sm font-bold tracking-wider uppercase">
             Police Control Room Secure Login
           </h3>
@@ -95,44 +94,44 @@ export default function Login() {
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 text-xs">
           
           {(error || authError) && (
-            <div className="p-2.5 bg-red-50 border border-red-200 rounded flex items-center space-x-2 text-red-700 text-xs">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-center space-x-2 text-red-700 text-xs">
               <AlertTriangle className="h-4 w-4 shrink-0 text-red-600" />
               <span>{error || authError}</span>
             </div>
           )}
 
-          <div className="space-y-1">
-            <label className="text-slate-700 font-bold block">
+          <div className="space-y-1.5">
+            <label className="text-slate-700 font-bold block text-xs">
               Official Service ID / Email
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@trichypolice.gov.in"
-                className="login-input w-full pl-9 pr-3 py-2 text-xs font-medium focus:outline-none"
+                className="login-input w-full pl-10 pr-4 py-2.5 text-sm font-medium focus:outline-none"
                 required
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-slate-700 font-bold block">
+          <div className="space-y-1.5">
+            <label className="text-slate-700 font-bold block text-xs">
               Security Passphrase
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="login-input w-full pl-9 pr-3 py-2 text-xs font-medium focus:outline-none font-mono"
+                className="login-input w-full pl-10 pr-4 py-2.5 text-sm font-medium focus:outline-none font-mono"
                 required
               />
             </div>
@@ -146,7 +145,7 @@ export default function Login() {
           <button 
             type="submit" 
             disabled={loading}
-            className="login-primary-button w-full py-2.5 text-white font-bold text-xs transition-colors cursor-pointer"
+            className="login-primary-button w-full py-3 text-white font-bold text-sm transition-colors cursor-pointer rounded-md"
           >
             {loading ? 'Authenticating Credentials...' : 'Authenticate & Enter Control Room'}
           </button>
@@ -154,9 +153,9 @@ export default function Login() {
           <button 
             type="button"
             onClick={handleQuickDemoAccess}
-            className="login-demo-button w-full py-2 text-slate-800 font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+            className="login-demo-button w-full py-2.5 text-slate-800 font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center space-x-1.5 rounded-md"
           >
-            <UserCheck className="w-3.5 h-3.5 text-blue-600" />
+            <UserCheck className="w-3.5 h-3.5 text-[#046A38]" />
             <span>Quick Enter Demo Control Room</span>
           </button>
         </form>
@@ -171,7 +170,7 @@ export default function Login() {
       </div>
 
       {/* Footer */}
-      <footer className="login-footer text-center text-xs space-y-0.5">
+      <footer className="login-footer text-center text-xs space-y-0.5 mt-4 z-10">
         <p>Guardian Angel AI · Public Safety Prototype</p>
         <p className="text-[10px]">Women Safety & Intelligent Surveillance System</p>
       </footer>

@@ -59,3 +59,6 @@ lerna-debug.log*
 
 # Database
 *.db
+
+# DNN Model weights (too large for git, download via script)
+*.caffemodel

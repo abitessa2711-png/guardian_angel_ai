@@ -40,7 +40,7 @@ export default function Sidebar({ activeTab = 'dashboard', setActiveTab }) {
   }, []);
 
   return (
-    <aside className="w-60 bg-white text-slate-700 flex flex-col justify-between select-none border-r border-slate-200 shrink-0 min-h-[calc(100vh-62px)] shadow-xs">
+    <aside className="w-60 bg-white text-slate-700 flex flex-col justify-between select-none border-r border-slate-200 shrink-0 h-full overflow-y-auto shadow-xs">
       
       {/* Navigation List */}
       <div className="py-3 px-2 space-y-1">

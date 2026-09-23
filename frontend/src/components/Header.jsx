@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, ChevronDown, User, LogOut, Clock, Shield, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import guardianLogo from '../assets/logo_new.jpg';
 
 export default function Header({ onSelectAlert, unreadCount = 12 }) {
   const { user, logout } = useAuth();
@@ -41,15 +42,11 @@ export default function Header({ onSelectAlert, unreadCount = 12 }) {
         
         {/* Left: Emblem + Project Title + Subtitle */}
         <div className="flex items-center space-x-3.5">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 p-1 border border-slate-200 shrink-0 shadow-xs">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white p-0.5 border border-slate-200 shrink-0 shadow-xs overflow-hidden">
             <img 
-              src="/tn-govt-seal.png" 
-              alt="Government Seal" 
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "/favicon.svg";
-              }}
+              src={guardianLogo} 
+              alt="Guardian Angel AI" 
+              className="w-full h-full object-cover rounded-md"
             />
           </div>
           <div className="flex flex-col">

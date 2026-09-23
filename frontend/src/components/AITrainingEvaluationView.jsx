@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../context/AuthContext';
 import { 
   Cpu, 
   Play, 
@@ -214,7 +215,7 @@ export default function AITrainingEvaluationView() {
                   setIsTraining(true);
                   setTrainStatusMsg(`Executing training pass on ${selectedDatasetId} for ${epochs} epochs...`);
                   try {
-                    const res = await fetch('http://127.0.0.1:8000/ai/train', {
+                    const res = await fetch(`${API_BASE_URL}/ai/train`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({

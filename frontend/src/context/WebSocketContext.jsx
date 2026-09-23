@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { API_BASE_URL } from './AuthContext';
 
 const WebSocketContext = createContext(null);
 
@@ -51,8 +52,9 @@ export const WebSocketProvider = ({ children }) => {
   const connectWebSocket = () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
 
-    console.log('[WebSocket] Connecting to ws://localhost:8000/ws/alerts...');
-    const ws = new WebSocket('ws://localhost:8000/ws/alerts');
+    const wsUrl = import.meta.env.VITE_WS_URL || (API_BASE_URL ? API_BASE_URL.replace(/^http/, 'ws') + '/ws/alerts' : 'ws://localhost:8000/ws/alerts');
+    console.log(`[WebSocket] Connecting to ${wsUrl}...`);
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log('[WebSocket] Connected to Guardian Angel AI alerts socket.');
@@ -120,7 +122,7 @@ export const WebSocketProvider = ({ children }) => {
   // Fetch initial alerts list from HTTP API on load
   const loadInitialAlerts = async (authHeaders) => {
     try {
-      const res = await fetch('http://localhost:8000/alerts', {
+      const res = await fetch(`${API_BASE_URL}/alerts`, {
         headers: authHeaders
       });
       if (res.ok) {

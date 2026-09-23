@@ -41,7 +41,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased select-none">
+    <div className="h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased select-none overflow-hidden">
       
       {/* 1. Header Matching Reference Mockup */}
       <Header 
@@ -151,7 +151,7 @@ export default function Dashboard() {
 
       {/* 4. Action Toast */}
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 z-50 bg-[#0f1d35] text-white text-xs font-semibold px-3.5 py-2 rounded shadow-xl border border-[#223b61] flex items-center space-x-2 animate-in slide-in-from-bottom-2 duration-150">
+        <div className="fixed bottom-4 right-4 z-50 bg-[#000080] text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-xl border border-[#000080]/50 flex items-center space-x-2 animate-in slide-in-from-bottom-2 duration-150">
           <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
           <span>{toastMessage}</span>
         </div>
