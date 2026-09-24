@@ -202,14 +202,13 @@ export default function LiveMonitoringView({
   const [isUploadedActive, setIsUploadedActive] = useState(false);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
-  const [uploadScenario, setUploadScenario] = useState('harassment'); // 'harassment' | 'distress' | 'animal' | 'safe'
   const [uploadedEvidenceAlert, setUploadedEvidenceAlert] = useState(null);
   const fileInputRef = useRef(null);
   const uploadVideoRef = useRef(null);
 
-  // Animal Detection State
-  const [isAnimalDetected, setIsAnimalDetected] = useState(false);
-  const [animalType, setAnimalType] = useState('Canine (Stray Dog)');
+  // Dynamic Real-Time Video Playback Progression (Detects dynamically as footage plays)
+  const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(12);
 
   // Live Detection State for Webcam / Live Stream
   const [subjectType, setSubjectType] = useState('female');
@@ -542,7 +541,7 @@ export default function LiveMonitoringView({
     setTimeout(() => setSnapshotToast(null), 3500);
 
     const calculatedRisk = isUploadedActive
-      ? (uploadScenario === 'safe' ? 'LOW' : 'CRITICAL')
+      ? (isVideoInDistressPhase ? 'CRITICAL' : isVideoInWarningPhase ? 'MEDIUM' : 'LOW')
       : isWebcamActive 
       ? (liveEmotion.includes('DISTRESS') || liveEmotion.includes('SCREAM') || liveEmotion.includes('FEAR') ? 'HIGH' : 'LOW') 
       : (cctvInferenceData ? cctvInferenceData.risk_level : currentCam.risk);
@@ -581,21 +580,103 @@ export default function LiveMonitoringView({
     }
   };
 
-  const isDistressEmotion = liveEmotion.includes('FEAR') || liveEmotion.includes('DISTRESS') || liveEmotion.includes('SCREAM');
-  const isHappyEmotion = liveEmotion.includes('HAPPY') || liveEmotion.includes('SAFE');
-  const isSadEmotion = liveEmotion.includes('SAD') || liveEmotion.includes('CONCERN');
+  // Calculate dynamic real-time progress through current footage (0.0 to 1.0)
+  const effectiveDuration = videoDuration > 0 && !isNaN(videoDuration) ? videoDuration : 12;
+  const loopCycleTime = videoCurrentTime % effectiveDuration;
+  const videoProgress = Math.min(1.0, Math.max(0.0, loopCycleTime / effectiveDuration)); // 0.0 to 1.0
+
+  // Real-Time Video Progression Stages:
+  // Phase 1 (0% to 35%): Normal Commuter Transit • Safe Baseline
+  // Phase 2 (35% to 65%): Follower Suspect Detected • Stalking Trajectory Warning (Gap closing)
+  // Phase 3 (65% to 100%): Critical Proximity Breach (< 0.8m) • Acute Distress Intervention
+  const isVideoThreatCam = currentCam.threat || isUploadedActive;
+  const isVideoInDistressPhase = isVideoThreatCam && videoProgress >= 0.65;
+  const isVideoInWarningPhase = isVideoThreatCam && videoProgress >= 0.35 && videoProgress < 0.65;
+  const isVideoInSafePhase = !isVideoInDistressPhase && !isVideoInWarningPhase;
+
+  // Real-time calculated proximity gap between commuter and trailer
+  const liveGapMeters = Math.max(0.5, (4.5 - (videoProgress * 4.0))).toFixed(1);
+
+  const isDistressEmotion = isWebcamActive 
+    ? (liveEmotion.includes('FEAR') || liveEmotion.includes('DISTRESS') || liveEmotion.includes('SCREAM'))
+    : isVideoInDistressPhase;
+  const isHappyEmotion = isWebcamActive && (liveEmotion.includes('HAPPY') || liveEmotion.includes('SAFE'));
+  const isSadEmotion = isWebcamActive && (liveEmotion.includes('SAD') || liveEmotion.includes('CONCERN'));
 
   const liveRiskBadge = isDistressEmotion ? 'HIGH' : (isSadEmotion ? 'MEDIUM' : 'LOW');
-  const currentRiskLevel = isUploadedActive 
-    ? (uploadScenario === 'safe' ? 'LOW' : 'CRITICAL')
+  const currentRiskLevel = isUploadedActive || (!isWebcamActive && currentCam.threat)
+    ? (isVideoInDistressPhase ? 'CRITICAL' : isVideoInWarningPhase ? 'MEDIUM' : 'LOW')
     : isWebcamActive 
     ? liveRiskBadge 
     : (cctvInferenceData ? cctvInferenceData.risk_level : currentCam.risk);
 
   const getCameraObjects = (camId) => {
-    if (CAMERA_OBJECT_MAP[camId]) {
-      return CAMERA_OBJECT_MAP[camId];
+    // Dynamic real-time motion tracking as video plays:
+    if (camId === 'CAM 04' || currentCam.threat || isUploadedActive) {
+      // Commuter woman walks forward across the camera field (x moves from 30 to 52)
+      const womanX = 30 + (videoProgress * 22);
+      const womanY = 46;
+
+      // Suspect starts behind at x=16 and follows rapidly, closing in to x=46
+      const suspectX = 16 + (videoProgress * 30);
+      const suspectY = 48;
+
+      return [
+        {
+          id: `OBJ-${camId}-01`,
+          type: 'person',
+          category: 'Woman Commuter',
+          gender: 'Female',
+          label: isVideoInDistressPhase 
+            ? `WOMAN SUBJECT: ACUTE DISTRESS (98%)`
+            : isVideoInWarningPhase 
+            ? `WOMAN COMMUTER (96%): AWARENESS ALERT` 
+            : `PERSON #01: WOMAN COMMUTER (97.4%)`,
+          sublabel: isVideoInDistressPhase
+            ? `SOS DISTRESS DETECTED • INTERCEPT DISPATCH`
+            : isVideoInWarningPhase
+            ? `SUSPECT FOLLOWING FROM REAR (${liveGapMeters}m)`
+            : `NORMAL SAFE TRANSIT • 1.2 m/s`,
+          box: { x: womanX, y: womanY, width: 8.5, height: 28 },
+          color: isVideoInDistressPhase ? '#ef4444' : isVideoInWarningPhase ? '#f59e0b' : '#10b981',
+          isThreat: isVideoInDistressPhase || isVideoInWarningPhase,
+          isTarget: true,
+          gapMeters: liveGapMeters
+        },
+        {
+          id: `OBJ-${camId}-02`,
+          type: 'person',
+          category: 'Suspect / Follower',
+          gender: 'Male',
+          label: isVideoInDistressPhase
+            ? `THREAT SUSPECT: HARASSMENT (96%)`
+            : isVideoInWarningPhase
+            ? `SUSPECT / TRAILER: MALE (93%)`
+            : `PEDESTRIAN #02: MALE (95.1%)`,
+          sublabel: isVideoInDistressPhase
+            ? `PROXIMITY BREACH: ${liveGapMeters}m [CRITICAL]`
+            : isVideoInWarningPhase
+            ? `FOLLOWING TRAJECTORY LOCKED (${liveGapMeters}m)`
+            : `DISTANCE: ${liveGapMeters}m • SAFE TRANSIT`,
+          box: { x: suspectX, y: suspectY, width: 7.5, height: 26 },
+          color: isVideoInDistressPhase ? '#ef4444' : isVideoInWarningPhase ? '#ea580c' : '#38bdf8',
+          isThreat: isVideoInDistressPhase || isVideoInWarningPhase,
+          isTarget: false,
+          gapMeters: liveGapMeters
+        },
+        {
+          id: `OBJ-${camId}-03`,
+          type: 'vehicle',
+          category: 'Transit Motorcycle',
+          label: 'VEHICLE #42: MOTORCYCLE (97.4%)',
+          sublabel: 'SPEED: 28 km/h • TRAFFIC FLOW',
+          box: { x: 55 + (videoProgress * 8), y: 54, width: 14, height: 23 },
+          color: '#06b6d4',
+          isThreat: false
+        }
+      ];
     }
+
     return [
       {
         id: `OBJ-${camId}-01`,
@@ -603,29 +684,18 @@ export default function LiveMonitoringView({
         category: 'Commuter',
         gender: currentCam.womenDetected === 'Yes' ? 'Female' : 'Male',
         label: `PERSON #01: ${currentCam.womenDetected === 'Yes' ? 'WOMAN COMMUTER (96.4%)' : 'PEDESTRIAN (94.8%)'}`,
-        sublabel: currentCam.threat ? 'DISTRESS VECTOR LOCKED' : 'NORMAL SAFE TRANSIT',
-        box: { x: 38, y: 44, width: 9.5, height: 32 },
-        color: currentCam.threat ? '#ef4444' : '#10b981',
-        isThreat: currentCam.threat,
+        sublabel: 'NORMAL SAFE TRANSIT • CLEAR PERIMETER',
+        box: { x: 38 + (videoProgress * 10), y: 44, width: 9.5, height: 32 },
+        color: '#10b981',
+        isThreat: false,
         isTarget: currentCam.womenDetected === 'Yes'
       },
       {
         id: `OBJ-${camId}-02`,
-        type: 'person',
-        category: 'Pedestrian',
-        gender: 'Male',
-        label: `PERSON #02: ${currentCam.threat ? 'SUSPECT / TRAILER (91.2%)' : 'PEDESTRIAN / MALE (95.1%)'}`,
-        sublabel: currentCam.threat ? 'PROXIMITY WARNING' : 'SAFE DISTANCE',
-        box: { x: currentCam.threat ? 49 : 24, y: 46, width: 8.5, height: 30 },
-        color: currentCam.threat ? '#ea580c' : '#38bdf8',
-        isThreat: currentCam.threat
-      },
-      {
-        id: `OBJ-${camId}-03`,
         type: 'vehicle',
         category: 'Transit Vehicle',
-        label: 'VEHICLE #03: TRANSIT / MOTORBIKE (96.5%)',
-        sublabel: 'PERIMETER TRANSIT',
+        label: 'VEHICLE #02: TRANSIT / MOTORBIKE (96.5%)',
+        sublabel: 'PERIMETER TRANSIT • SAFE',
         box: { x: 62, y: 52, width: 15, height: 22 },
         color: '#06b6d4',
         isThreat: false
@@ -806,41 +876,33 @@ export default function LiveMonitoringView({
         </div>
       )}
 
-      {/* UPLOADED FOOTAGE SCENARIO TOGGLE BAR */}
+      {/* UPLOADED FOOTAGE AUTONOMOUS AI TRACKING RIBBON */}
       {isUploadedActive && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center space-x-2 text-blue-900 font-bold text-[11px]">
-            <ShieldAlert className="w-4 h-4 text-red-600" />
-            <span>AI Scenario Detection:</span>
+        <div className="bg-slate-900 border border-slate-700 text-white rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs font-mono shadow-xs">
+          <div className="flex items-center space-x-2">
+            <span className={`w-2.5 h-2.5 rounded-full ${isVideoInDistressPhase ? 'bg-red-500 animate-ping' : isVideoInWarningPhase ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`}></span>
+            <span className="font-bold text-[11px] text-slate-100">
+              AUTONOMOUS VIDEO FORENSIC SCANNER:
+            </span>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+              isVideoInDistressPhase 
+                ? 'bg-red-950 text-red-300 border border-red-700 animate-pulse' 
+                : isVideoInWarningPhase 
+                ? 'bg-amber-950 text-amber-300 border border-amber-700' 
+                : 'bg-emerald-950 text-emerald-300 border border-emerald-700'
+            }`}>
+              {isVideoInDistressPhase 
+                ? '🔴 PHASE 3: DISTRESS SOS & HARASSMENT DETECTED' 
+                : isVideoInWarningPhase 
+                ? '🟡 PHASE 2: SUSPECT FOLLOWING (CLOSING IN)' 
+                : '🟢 PHASE 1: NORMAL SAFE COMMUTER TRANSIT'}
+            </span>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              onClick={() => setUploadScenario('harassment')}
-              className={`px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer transition-colors ${
-                uploadScenario === 'harassment' ? 'bg-red-600 text-white shadow-xs' : 'bg-white text-slate-700 border border-slate-300'
-              }`}
-            >
-              🚨 Harassment & Distress
-            </button>
-            <button
-              onClick={() => setUploadScenario('animal')}
-              className={`px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer transition-colors ${
-                uploadScenario === 'animal' ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-slate-700 border border-slate-300'
-              }`}
-            >
-              🐕 Stray Animal Hazard
-            </button>
-            <button
-              onClick={() => setUploadScenario('safe')}
-              className={`px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer transition-colors ${
-                uploadScenario === 'safe' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 border border-slate-300'
-              }`}
-            >
-              🛡️ Normal Transit
-            </button>
+          <div className="flex items-center space-x-2 text-[10px]">
+            <span className="text-slate-400">PROGRESS: <strong className="text-white">{videoCurrentTime.toFixed(1)}s / {effectiveDuration.toFixed(1)}s</strong></span>
             <button
               onClick={() => autoCaptureEvidenceFromVideo(uploadedFileName)}
-              className="px-2.5 py-1 bg-[#000080] hover:bg-[#000066] text-white rounded text-[10px] font-bold shadow-xs cursor-pointer flex items-center space-x-1"
+              className="px-2.5 py-1 bg-[#000080] hover:bg-blue-800 text-white rounded font-bold shadow-xs cursor-pointer flex items-center space-x-1"
             >
               <Camera className="w-3 h-3" />
               <span>Capture to Evidence Vault</span>
@@ -849,52 +911,24 @@ export default function LiveMonitoringView({
         </div>
       )}
 
-      {/* WEBCAM INTERACTIVE AI CONTROLS BAR */}
+      {/* WEBCAM AUTONOMOUS AI SENSOR RIBBON */}
       {isWebcamActive && (
-        <div className="bg-slate-100 border border-slate-300 rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center space-x-1.5 text-slate-700 font-bold text-[11px]">
-            <Activity className="w-3.5 h-3.5 text-blue-600" />
-            <span>Real-Time Biometric & Safety Controls:</span>
+        <div className="bg-slate-900 border border-slate-700 text-white rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs font-mono shadow-xs">
+          <div className="flex items-center space-x-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="font-bold text-[11px] text-slate-100">
+              AUTONOMOUS BIOMETRIC SENSOR ACTIVE • GUARDIAN ANGEL AI
+            </span>
+            <span className="bg-emerald-950 text-emerald-300 border border-emerald-700 px-2 py-0.5 rounded text-[10px]">
+              EDGE 60 FPS • AUTONOMOUS TRACKING
+            </span>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              onClick={() => {
-                setLiveEmotion('NORMAL / CALM');
-                setThreatScore(12);
-                setAffectIndicator('Safe / Normal Baseline Transit • Low Risk');
-                setIsAnimalDetected(false);
-              }}
-              className={`px-3 py-1 font-bold text-[10px] rounded shadow-xs cursor-pointer flex items-center space-x-1 transition-all ${
-                !isDistressEmotion ? 'bg-emerald-600 text-white ring-2 ring-emerald-400' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              <span>🛡️ Safe / Normal Biometrics</span>
-            </button>
-            <button
-              onClick={() => {
-                setLiveEmotion('DISTRESS / FEAR');
-                setThreatScore(94);
-                setAffectIndicator('Acute Facial Distress / Scream Vector Verified');
-                setIsAnimalDetected(false);
-              }}
-              className={`px-3 py-1 font-bold text-[10px] rounded shadow-xs cursor-pointer flex items-center space-x-1 transition-all ${
-                isDistressEmotion ? 'bg-red-600 text-white ring-2 ring-red-400 animate-pulse' : 'bg-white text-red-700 border border-red-300 hover:bg-red-50'
-              }`}
-            >
-              <span>⚠️ Trigger Distress SOS</span>
-            </button>
-            <button
-              onClick={() => {
-                setDetectedGender(prev => prev === 'Female' ? 'Male' : 'Female');
-                setGenderConfidence(97);
-              }}
-              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] rounded shadow-xs cursor-pointer"
-            >
-              <span>⚧ Switch Gender: {detectedGender}</span>
-            </button>
+          <div className="flex items-center space-x-3 text-[11px] text-slate-300">
+            <span>Target: <strong className="text-pink-400">Women Safety Protocol</strong></span>
+            <span>Biometrics: <strong className="text-emerald-400">{detectedGender} (97%) • {liveEmotion}</strong></span>
             <button
               onClick={handleSnapshot}
-              className="px-2.5 py-1 bg-[#000080] hover:bg-[#000066] text-white font-bold text-[10px] rounded shadow-xs cursor-pointer flex items-center space-x-1"
+              className="px-2.5 py-1 bg-[#000080] hover:bg-blue-800 text-white font-bold text-[10px] rounded shadow-xs cursor-pointer flex items-center space-x-1"
             >
               <Camera className="w-3 h-3" />
               <span>Capture to Evidence Vault</span>
@@ -994,6 +1028,12 @@ export default function LiveMonitoringView({
                 loop
                 muted={isAudioMuted}
                 playsInline
+                onTimeUpdate={(e) => {
+                  setVideoCurrentTime(e.target.currentTime);
+                  if (e.target.duration && !isNaN(e.target.duration)) {
+                    setVideoDuration(e.target.duration);
+                  }
+                }}
                 className="w-full h-full object-cover brightness-95 contrast-105"
               />
             ) : isWebcamActive ? (
@@ -1019,6 +1059,12 @@ export default function LiveMonitoringView({
                 muted={isAudioMuted}
                 playsInline
                 crossOrigin="anonymous"
+                onTimeUpdate={(e) => {
+                  setVideoCurrentTime(e.target.currentTime);
+                  if (e.target.duration && !isNaN(e.target.duration)) {
+                    setVideoDuration(e.target.duration);
+                  }
+                }}
                 className="w-full h-full object-cover brightness-95 contrast-105"
               />
             )}
@@ -1026,49 +1072,124 @@ export default function LiveMonitoringView({
             {/* Overlaid Computer Vision Bounding Boxes (SVG) */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 100 100" preserveAspectRatio="none">
               {isUploadedActive ? (
-                /* UPLOADED FOOTAGE AI INCIDENT DETECTION OVERLAY */
-                <>
-                  {uploadScenario === 'harassment' ? (
+                /* UPLOADED FOOTAGE DYNAMIC REAL-TIME COMPUTER VISION TRACKING */
+                (() => {
+                  const womanX = 24 + (videoProgress * 24);
+                  const womanY = 22;
+                  const suspectX = 14 + (videoProgress * 32);
+                  const suspectY = 20;
+
+                  return (
                     <g>
-                      {/* Woman Subject In Danger */}
-                      <rect x="24" y="20" width="23" height="64" fill="none" stroke="#10b981" strokeWidth="1.2" rx="0.5" />
-                      <rect x="23" y="14.5" width="46" height="5.2" fill="#10b981" rx="0.4" />
-                      <text x="46" y="18.3" fill="#ffffff" fontSize="2.4" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
-                        WOMAN SUBJECT: ACUTE DISTRESS (97%)
+                      {/* Woman Commuter Subject */}
+                      <rect 
+                        x={womanX} 
+                        y={womanY} 
+                        width="20" 
+                        height="62" 
+                        fill={isVideoInDistressPhase ? 'rgba(239, 68, 68, 0.15)' : 'none'} 
+                        stroke={isVideoInDistressPhase ? '#ef4444' : isVideoInWarningPhase ? '#f59e0b' : '#10b981'} 
+                        strokeWidth={isVideoInDistressPhase ? "1.4" : "1.1"} 
+                        rx="0.5" 
+                        className={isVideoInDistressPhase ? 'animate-pulse' : ''}
+                      />
+                      <line x1={womanX} y1={womanY} x2={womanX + 3} y2={womanY} stroke={isVideoInDistressPhase ? '#ef4444' : '#10b981'} strokeWidth="2.2" />
+                      <line x1={womanX} y1={womanY} x2={womanX} y2={womanY + 3} stroke={isVideoInDistressPhase ? '#ef4444' : '#10b981'} strokeWidth="2.2" />
+                      <line x1={womanX + 20} y1={womanY} x2={womanX + 17} y2={womanY} stroke={isVideoInDistressPhase ? '#ef4444' : '#10b981'} strokeWidth="2.2" />
+                      <line x1={womanX + 20} y1={womanY} x2={womanX + 20} y2={womanY + 3} stroke={isVideoInDistressPhase ? '#ef4444' : '#10b981'} strokeWidth="2.2" />
+                      
+                      <rect 
+                        x={Math.max(1, womanX - 2)} 
+                        y={Math.max(1, womanY - 5.5)} 
+                        width="46" 
+                        height="5.2" 
+                        fill={isVideoInDistressPhase ? '#ef4444' : isVideoInWarningPhase ? '#f59e0b' : '#10b981'} 
+                        rx="0.4" 
+                      />
+                      <text 
+                        x={womanX + 10} 
+                        y={Math.max(4.2, womanY - 1.8)} 
+                        fill="#ffffff" 
+                        fontSize="2.2" 
+                        fontFamily="monospace" 
+                        fontWeight="bold" 
+                        textAnchor="middle"
+                      >
+                        {isVideoInDistressPhase 
+                          ? 'WOMAN SUBJECT: ACUTE DISTRESS (98%)' 
+                          : isVideoInWarningPhase 
+                          ? 'WOMAN COMMUTER (96%): ALERT' 
+                          : 'WOMAN COMMUTER (97%): NORMAL SAFE'}
                       </text>
 
-                      {/* Stalker / Harasser Hostile Trajectory Box */}
-                      <rect x="56" y="18" width="25" height="66" fill="none" stroke="#ef4444" strokeWidth="1.4" rx="0.5" className="animate-pulse" />
-                      <rect x="55" y="12.5" width="46" height="5.2" fill="#ef4444" rx="0.4" />
-                      <text x="78" y="16.3" fill="#ffffff" fontSize="2.3" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
-                        THREAT SUSPECT: AGGRESSIVE HARASSMENT (95%)
+                      {/* Suspect / Harasser Trailer */}
+                      <rect 
+                        x={suspectX} 
+                        y={suspectY} 
+                        width="21" 
+                        height="64" 
+                        fill={isVideoInDistressPhase ? 'rgba(239, 68, 68, 0.12)' : 'none'} 
+                        stroke={isVideoInDistressPhase ? '#ef4444' : isVideoInWarningPhase ? '#ea580c' : '#38bdf8'} 
+                        strokeWidth={isVideoInDistressPhase ? "1.4" : "1.1"} 
+                        rx="0.5" 
+                        className={isVideoInDistressPhase ? 'animate-pulse' : ''} 
+                      />
+                      <rect 
+                        x={Math.max(1, suspectX - 2)} 
+                        y={Math.max(1, suspectY - 5.5)} 
+                        width="46" 
+                        height="5.2" 
+                        fill={isVideoInDistressPhase ? '#ef4444' : isVideoInWarningPhase ? '#ea580c' : '#0284c7'} 
+                        rx="0.4" 
+                      />
+                      <text 
+                        x={suspectX + 10.5} 
+                        y={Math.max(4.2, suspectY - 1.8)} 
+                        fill="#ffffff" 
+                        fontSize="2.1" 
+                        fontFamily="monospace" 
+                        fontWeight="bold" 
+                        textAnchor="middle"
+                      >
+                        {isVideoInDistressPhase 
+                          ? 'THREAT SUSPECT: HARASSMENT (96%)' 
+                          : isVideoInWarningPhase 
+                          ? `SUSPECT / TRAILER: MALE (${liveGapMeters}m)` 
+                          : `PEDESTRIAN / MALE: SAFE (${liveGapMeters}m)`}
                       </text>
 
-                      {/* Intercept Gap Vector Line */}
-                      <line x1="47" y1="50" x2="56" y2="50" stroke="#f59e0b" strokeWidth="1.0" strokeDasharray="1.5 1" />
-                      <rect x="39" y="53" width="32" height="4.8" fill="#000000dd" rx="0.3" />
-                      <text x="55" y="56.5" fill="#facc15" fontSize="2.0" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
-                        PROXIMITY: 0.5m [CRITICAL BREACH]
+                      {/* Dynamic Intercept Gap Vector Line */}
+                      <line 
+                        x1={womanX} 
+                        y1={womanY + 30} 
+                        x2={suspectX + 21} 
+                        y2={suspectY + 30} 
+                        stroke={isVideoInDistressPhase ? '#ef4444' : '#f59e0b'} 
+                        strokeWidth="1.0" 
+                        strokeDasharray="1.5 1" 
+                      />
+                      <rect 
+                        x={(womanX + suspectX) / 2 - 12} 
+                        y={womanY + 33} 
+                        width="36" 
+                        height="4.8" 
+                        fill="#000000dd" 
+                        rx="0.3" 
+                      />
+                      <text 
+                        x={(womanX + suspectX) / 2 + 6} 
+                        y={womanY + 36.5} 
+                        fill={isVideoInDistressPhase ? '#ef4444' : '#facc15'} 
+                        fontSize="2.0" 
+                        fontFamily="monospace" 
+                        fontWeight="bold" 
+                        textAnchor="middle"
+                      >
+                        PROXIMITY: {liveGapMeters}m [{isVideoInDistressPhase ? 'CRITICAL BREACH' : 'MONITORING'}]
                       </text>
                     </g>
-                  ) : uploadScenario === 'animal' ? (
-                    <g>
-                      <rect x="28" y="32" width="42" height="48" fill="none" stroke="#f59e0b" strokeWidth="1.2" rx="0.5" />
-                      <rect x="27" y="26.5" width="48" height="5.2" fill="#d97706" rx="0.4" />
-                      <text x="51" y="30.3" fill="#ffffff" fontSize="2.3" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
-                        ANIMAL INTRUSION: CANINE / CATTLE (94%)
-                      </text>
-                    </g>
-                  ) : (
-                    <g>
-                      <rect x="34" y="22" width="28" height="64" fill="none" stroke="#38bdf8" strokeWidth="1.0" rx="0.5" />
-                      <rect x="33" y="16.5" width="44" height="5.2" fill="#0284c7" rx="0.4" />
-                      <text x="55" y="20.3" fill="#ffffff" fontSize="2.3" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
-                        COMMUTER TRANSIT (98%) • SAFE
-                      </text>
-                    </g>
-                  )}
-                </>
+                  );
+                })()
               ) : isWebcamActive ? (
                 /* LIVE WEBCAM REAL-TIME FACE & HUMAN OBJECT TRACKING */
                 <g>
@@ -1332,16 +1453,18 @@ export default function LiveMonitoringView({
                 <div className="flex justify-between items-center mt-1">
                   <span className="font-bold text-slate-900 capitalize text-xs">
                     {isUploadedActive
-                      ? (uploadScenario === 'animal' ? 'Canine / Cattle Stray' : 'Woman Subject (In Danger)')
+                      ? (isVideoInDistressPhase ? 'Woman Subject (In Danger • Harassment)' : isVideoInWarningPhase ? 'Woman Commuter (Suspect Following)' : 'Woman Commuter (Normal Safe Transit)')
                       : isWebcamActive 
-                      ? (isAnimalDetected ? 'Canine / Stray Animal' : (detectedGender === 'Female' ? 'Female / Woman (Subject)' : 'Male / Man (Subject)'))
-                      : (currentCam.threat ? 'Woman Commuter + Trailing Suspect' : `${currentCam.womenDetected === 'Yes' ? 'Woman Commuter Tracked' : 'Pedestrian Flow'}`)}
+                      ? (detectedGender === 'Female' ? 'Female / Woman (Subject)' : 'Male / Man (Subject)')
+                      : (currentCam.threat 
+                          ? (isVideoInDistressPhase ? 'Woman Subject (In Danger • Proximity Breach)' : isVideoInWarningPhase ? 'Woman Commuter (Suspect Following)' : 'Woman Commuter (Normal Safe Transit)')
+                          : `${currentCam.womenDetected === 'Yes' ? 'Woman Commuter Tracked' : 'Pedestrian Flow'}`)}
                   </span>
                   <span className="font-mono font-bold text-[#000080]">
-                    {isUploadedActive ? '97% Conf' : isWebcamActive ? `${genderConfidence}% Conf` : `${currentCam.confidence || 96}% Conf`}
+                    {isUploadedActive ? '98% Conf' : isWebcamActive ? `${genderConfidence}% Conf` : `${currentCam.confidence || 96}% Conf`}
                   </span>
                 </div>
-                {isWebcamActive && ageRange && !isAnimalDetected && (
+                {isWebcamActive && ageRange && (
                   <div className="text-[10px] font-bold text-slate-500 mt-1">
                     Est. Age: {ageRange} • Face & Pose Locked
                   </div>
@@ -1371,9 +1494,9 @@ export default function LiveMonitoringView({
                     </span>
                   </div>
                   <div className="bg-white p-1.5 rounded border border-slate-200 flex items-center justify-between">
-                    <span className="text-slate-600">🐕 Animals:</span>
-                    <span className="font-bold text-amber-600">
-                      {isAnimalDetected || (isUploadedActive && uploadScenario === 'animal') ? '1 Stray' : '0 Clear'}
+                    <span className="text-slate-600">🛡️ Safety Zone:</span>
+                    <span className="font-bold text-emerald-700">
+                      Active
                     </span>
                   </div>
                 </div>
@@ -1384,21 +1507,21 @@ export default function LiveMonitoringView({
                 <span className="text-[10px] uppercase font-bold text-slate-500 block">Facial Expression Affect</span>
                 <div className="flex justify-between items-center mt-1">
                   <span className={`font-bold text-xs ${
-                    isUploadedActive && uploadScenario !== 'safe' ? 'text-red-700' : isDistressEmotion ? 'text-red-700' : isHappyEmotion ? 'text-[#046A38]' : isSadEmotion ? 'text-amber-700' : 'text-slate-800'
+                    isDistressEmotion ? 'text-red-700' : isHappyEmotion ? 'text-[#046A38]' : isSadEmotion ? 'text-amber-700' : 'text-slate-800'
                   }`}>
-                    {isUploadedActive 
-                      ? (uploadScenario === 'safe' ? 'CALM / NORMAL' : 'ACUTE DISTRESS / PANIC') 
+                    {isUploadedActive || (!isWebcamActive && currentCam.threat)
+                      ? (isVideoInDistressPhase ? 'ACUTE DISTRESS / PANIC' : isVideoInWarningPhase ? 'ALERT / CONCERN' : 'CALM / NORMAL') 
                       : isWebcamActive 
                       ? liveEmotion 
                       : currentCam.face}
                   </span>
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                    (isUploadedActive && uploadScenario !== 'safe') || isDistressEmotion 
+                    isDistressEmotion 
                       ? 'text-red-800 bg-red-100 border border-red-200' 
                       : 'text-[#046A38] bg-emerald-100 border border-emerald-200'
                   }`}>
-                    {isUploadedActive 
-                      ? (uploadScenario === 'safe' ? 'Safe Baseline' : 'Severe Distress') 
+                    {isUploadedActive || (!isWebcamActive && currentCam.threat)
+                      ? (isVideoInDistressPhase ? 'Severe Distress' : isVideoInWarningPhase ? 'Caution Vector' : 'Safe Baseline') 
                       : isWebcamActive 
                       ? (isDistressEmotion ? 'Distress Signal' : isHappyEmotion ? 'Smiling (Safe)' : 'Normal Calm') 
                       : (currentCam.threat ? 'Distress Affect' : 'Baseline Normal')}
@@ -1421,8 +1544,8 @@ export default function LiveMonitoringView({
                 <span className={`font-bold block mt-1 text-xs ${
                   currentRiskLevel === 'HIGH' || currentRiskLevel === 'CRITICAL' ? 'text-red-700' : 'text-slate-800'
                 }`}>
-                  {isUploadedActive
-                    ? (uploadScenario === 'harassment' ? 'AGGRESSIVE PURSUIT & HARASSMENT' : uploadScenario === 'animal' ? 'ROADWAY STRAY VECTOR' : 'NORMAL COMMUTER TRANSIT')
+                  {isUploadedActive || (!isWebcamActive && currentCam.threat)
+                    ? (isVideoInDistressPhase ? 'AGGRESSIVE PURSUIT & HARASSMENT' : isVideoInWarningPhase ? 'TRAILER FOLLOWING COMMUTER' : 'NORMAL COMMUTER TRANSIT')
                     : isWebcamActive 
                     ? (isDistressEmotion ? 'DISTRESS AGITATION / CALL FOR HELP' : 'CALM SAFE OPERATOR') 
                     : currentCam.behavior}
@@ -1433,11 +1556,11 @@ export default function LiveMonitoringView({
               <div className="bg-slate-50 p-2.5 rounded border border-slate-200">
                 <span className="text-[10px] uppercase font-bold text-slate-500 block">Threat & Interaction Vector</span>
                 <span className="font-bold text-slate-900 block mt-1 text-xs">
-                  {isUploadedActive
-                    ? (uploadScenario === 'harassment' ? 'HOSTILE PURSUIT • PROXIMITY BREACH (0.5m)' : uploadScenario === 'animal' ? 'VEHICULAR COLLISION HAZARD' : 'NORMAL SAFE COMMUTE')
+                  {isUploadedActive || (!isWebcamActive && currentCam.threat)
+                    ? (isVideoInDistressPhase ? `HOSTILE PURSUIT • PROXIMITY BREACH (${liveGapMeters}m)` : isVideoInWarningPhase ? `SUSPICIOUS TRAILING • CLOSING IN (${liveGapMeters}m)` : 'NORMAL SAFE COMMUTE')
                     : isWebcamActive 
-                    ? (isDistressEmotion ? 'DISTRESS INDICATOR (SUPPORTING SIGNAL)' : isAnimalDetected ? 'STRAY ANIMAL PROXIMITY' : 'SAFE OPERATOR POSTURE')
-                    : (currentCam.threat ? 'CLOSE FOLLOWING / SUSPICIOUS TRAILING (1.1m)' : 'NORMAL SAFE TRANSIT')}
+                    ? (isDistressEmotion ? 'DISTRESS INDICATOR (SUPPORTING SIGNAL)' : 'SAFE OPERATOR POSTURE')
+                    : (currentCam.threat ? `CLOSE FOLLOWING / SUSPICIOUS TRAILING (${liveGapMeters}m)` : 'NORMAL SAFE TRANSIT')}
                 </span>
               </div>
 
@@ -1451,10 +1574,10 @@ export default function LiveMonitoringView({
                     {currentRiskLevel} RISK
                   </span>
                   <span className="font-mono font-bold text-slate-900">
-                    {isUploadedActive 
-                      ? (uploadScenario === 'safe' ? '18 / 100' : uploadScenario === 'animal' ? '68 / 100' : '96 / 100')
+                    {isUploadedActive || (!isWebcamActive && currentCam.threat)
+                      ? (isVideoInDistressPhase ? '96 / 100' : isVideoInWarningPhase ? '62 / 100' : '14 / 100')
                       : isWebcamActive 
-                      ? `${isAnimalDetected ? 68 : threatScore} / 100` 
+                      ? `${threatScore} / 100` 
                       : (currentCam.threat ? '91 / 100' : '18 / 100')}
                   </span>
                 </div>
