@@ -27,7 +27,7 @@ export const TRACKED_WOMEN_SUBJECTS = [
     duration: '18 mins tracked',
     status: 'In Danger Vector',
     dispatchAssigned: 'Patrol Car #12 (SI M. Vijay - Chennai City Police)',
-    snapshot: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=400&auto=format&fit=crop'
+    snapshot: '/images/woman1.jpg'
   },
   {
     id: 'SUBJ-4419',
@@ -40,7 +40,7 @@ export const TRACKED_WOMEN_SUBJECTS = [
     duration: '6 mins tracked',
     status: 'High Alert',
     dispatchAssigned: 'Campus Security Unit #02 (Coimbatore North)',
-    snapshot: 'https://images.unsplash.com/photo-1589156280159-27698a70f29e?q=80&w=400&auto=format&fit=crop'
+    snapshot: '/images/woman2.jpg'
   },
   {
     id: 'SUBJ-4425',
@@ -53,7 +53,7 @@ export const TRACKED_WOMEN_SUBJECTS = [
     duration: '12 mins tracked',
     status: 'Under Active Watch',
     dispatchAssigned: 'Beat Constable S. Selvam (Trichy Town PS)',
-    snapshot: 'https://images.unsplash.com/photo-1614283233556-f35b0c801ef1?q=80&w=400&auto=format&fit=crop'
+    snapshot: '/images/woman3.jpg'
   },
   {
     id: 'SUBJ-4431',
@@ -66,7 +66,7 @@ export const TRACKED_WOMEN_SUBJECTS = [
     duration: '4 mins tracked',
     status: 'Safe Transit',
     dispatchAssigned: 'Kavalan SOS Shield Active',
-    snapshot: 'https://images.unsplash.com/photo-1621592484082-2d05b1290d7a?q=80&w=400&auto=format&fit=crop'
+    snapshot: '/images/woman4.jpg'
   }
 ];
 

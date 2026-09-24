@@ -213,19 +213,19 @@ export default function LiveMonitoringView({
 
   // Live Detection State for Webcam / Live Stream
   const [subjectType, setSubjectType] = useState('female');
-  const [liveEmotion, setLiveEmotion] = useState('DISTRESS / FEAR'); 
-  const [liveBehavior, setLiveBehavior] = useState('ACUTE DISTRESS / CALL FOR HELP'); 
-  const [emotionConfidence, setEmotionConfidence] = useState(94);
-  const [subjectConfidence, setSubjectConfidence] = useState(96);
+  const [liveEmotion, setLiveEmotion] = useState('NORMAL / CALM'); 
+  const [liveBehavior, setLiveBehavior] = useState('BASELINE TRANSIT / SAFE'); 
+  const [emotionConfidence, setEmotionConfidence] = useState(96);
+  const [subjectConfidence, setSubjectConfidence] = useState(97);
   const [detectedFaceBox, setDetectedFaceBox] = useState({ x: 33, y: 17, width: 34, height: 46 });
-  const [faceFeatures, setFaceFeatures] = useState({ eyes_detected: 2, smile: false, mouth_open: true });
-  const [threatScore, setThreatScore] = useState(92);
-  const [affectIndicator, setAffectIndicator] = useState('Acute Facial Distress / Scream Vector Verified');
-  const [aiAnalysisStatus, setAiAnalysisStatus] = useState('Standby');
+  const [faceFeatures, setFaceFeatures] = useState({ eyes_detected: 2, smile: false, mouth_open: false });
+  const [threatScore, setThreatScore] = useState(12);
+  const [affectIndicator, setAffectIndicator] = useState('Normal / Baseline Facial Biometrics • Low Risk');
+  const [aiAnalysisStatus, setAiAnalysisStatus] = useState('Human Person Detected • Face & Expression Verified');
   const [cctvInferenceData, setCctvInferenceData] = useState(null);
 
   const [detectedGender, setDetectedGender] = useState('Female');
-  const [genderConfidence, setGenderConfidence] = useState(96);
+  const [genderConfidence, setGenderConfidence] = useState(97);
   const [ageRange, setAgeRange] = useState('22-26');
 
   const videoRef = useRef(null);
@@ -273,12 +273,12 @@ export default function LiveMonitoringView({
       setActiveCamId('CAM-LIVE');
       setDetectedFaceBox({ x: 33, y: 17, width: 34, height: 46 });
       setDetectedGender(prev => prev || 'Female');
-      setGenderConfidence(96);
-      setLiveEmotion(prev => prev || 'DISTRESS / FEAR');
-      setEmotionConfidence(94);
-      setThreatScore(92);
-      setAffectIndicator('Acute Facial Distress / Scream Vector Verified');
-      setAiAnalysisStatus('Human Person Detected • Face & Emotion Locked');
+      setGenderConfidence(97);
+      setLiveEmotion('NORMAL / CALM');
+      setEmotionConfidence(96);
+      setThreatScore(12);
+      setAffectIndicator('Normal / Baseline Facial Biometrics • Low Risk');
+      setAiAnalysisStatus('Human Person Detected • Face & Expression Verified');
       setAgeRange('22-26');
 
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -849,58 +849,55 @@ export default function LiveMonitoringView({
         </div>
       )}
 
-      {/* WEBCAM INTERACTIVE AI DEMO CONTROLS BAR */}
+      {/* WEBCAM INTERACTIVE AI CONTROLS BAR */}
       {isWebcamActive && (
         <div className="bg-slate-100 border border-slate-300 rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center space-x-1.5 text-slate-700 font-bold text-[11px]">
             <Activity className="w-3.5 h-3.5 text-blue-600" />
-            <span>Real-Time AI Demo Controls:</span>
+            <span>Real-Time Biometric & Safety Controls:</span>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               onClick={() => {
-                setLiveEmotion('FEAR / DISTRESS');
+                setLiveEmotion('NORMAL / CALM');
+                setThreatScore(12);
+                setAffectIndicator('Safe / Normal Baseline Transit • Low Risk');
+                setIsAnimalDetected(false);
+              }}
+              className={`px-3 py-1 font-bold text-[10px] rounded shadow-xs cursor-pointer flex items-center space-x-1 transition-all ${
+                !isDistressEmotion ? 'bg-emerald-600 text-white ring-2 ring-emerald-400' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              <span>🛡️ Safe / Normal Biometrics</span>
+            </button>
+            <button
+              onClick={() => {
+                setLiveEmotion('DISTRESS / FEAR');
                 setThreatScore(94);
-                setDetectedGender('Female');
                 setAffectIndicator('Acute Facial Distress / Scream Vector Verified');
                 setIsAnimalDetected(false);
               }}
-              className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] rounded shadow-xs cursor-pointer flex items-center space-x-1"
-            >
-              <span>⚠️ Trigger Distress / Fear (SOS)</span>
-            </button>
-            <button
-              onClick={() => {
-                setLiveEmotion('HAPPY / SAFE');
-                setThreatScore(8);
-                setAffectIndicator('Safe / Normal Baseline Transit');
-                setIsAnimalDetected(false);
-              }}
-              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] rounded shadow-xs cursor-pointer"
-            >
-              <span>😊 Safe / Calm</span>
-            </button>
-            <button
-              onClick={() => {
-                setIsAnimalDetected(!isAnimalDetected);
-                if (!isAnimalDetected) {
-                  setThreatScore(68);
-                }
-              }}
-              className={`px-2.5 py-1 font-bold text-[10px] rounded shadow-xs cursor-pointer border ${
-                isAnimalDetected ? 'bg-amber-600 text-white border-amber-700' : 'bg-white text-slate-700 border-slate-300'
+              className={`px-3 py-1 font-bold text-[10px] rounded shadow-xs cursor-pointer flex items-center space-x-1 transition-all ${
+                isDistressEmotion ? 'bg-red-600 text-white ring-2 ring-red-400 animate-pulse' : 'bg-white text-red-700 border border-red-300 hover:bg-red-50'
               }`}
             >
-              <span>🐕 Animal Detect Mode {isAnimalDetected ? '(ON)' : '(OFF)'}</span>
+              <span>⚠️ Trigger Distress SOS</span>
             </button>
             <button
               onClick={() => {
                 setDetectedGender(prev => prev === 'Female' ? 'Male' : 'Female');
-                setGenderConfidence(95);
+                setGenderConfidence(97);
               }}
               className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] rounded shadow-xs cursor-pointer"
             >
-              <span>⚧ Gender: {detectedGender}</span>
+              <span>⚧ Switch Gender: {detectedGender}</span>
+            </button>
+            <button
+              onClick={handleSnapshot}
+              className="px-2.5 py-1 bg-[#000080] hover:bg-[#000066] text-white font-bold text-[10px] rounded shadow-xs cursor-pointer flex items-center space-x-1"
+            >
+              <Camera className="w-3 h-3" />
+              <span>Capture to Evidence Vault</span>
             </button>
           </div>
         </div>
@@ -1078,9 +1075,7 @@ export default function LiveMonitoringView({
                   {/* 1. Object Type Master Banner */}
                   <rect x="18" y="3.5" width="64" height="5.2" fill="#000000dd" rx="0.4" stroke={isDistressEmotion ? '#ef4444' : '#10b981'} strokeWidth="0.6" />
                   <text x="50" y="7.2" fill="#ffffff" fontSize="2.2" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
-                    {isAnimalDetected 
-                      ? 'OBJECT: CANINE (STRAY ANIMAL) • CLASS #14 [CONF: 94.8%]' 
-                      : 'OBJECT: HUMAN (PERSON) • CLASS #01 [CONF: 99.4%]'}
+                    OBJECT: HUMAN (PERSON) • CLASS #01 [CONF: 99.4%]
                   </text>
 
                   {/* 2. Face Locked Reticle */}
@@ -1090,112 +1085,82 @@ export default function LiveMonitoringView({
                     // Mirror compensation
                     const faceX = detectedFaceBox ? Math.max(2, Math.min(100 - faceW - 2, 100 - (detectedFaceBox.x + faceW))) : 33;
                     const faceY = detectedFaceBox ? detectedFaceBox.y : 17;
-                    const boxColor = isDistressEmotion ? '#ef4444' : isHappyEmotion ? '#10b981' : isSadEmotion ? '#f59e0b' : '#38bdf8';
+                    const boxColor = isDistressEmotion ? '#ef4444' : '#10b981';
 
                     return (
                       <g>
-                        {/* Main Face Box */}
+                        {/* High-Tech Dotted / Dashed Bounding Box - Clean, No Cartoon Doodles */}
                         <rect 
                           x={faceX} 
                           y={faceY} 
                           width={faceW} 
                           height={faceH} 
-                          fill="none" 
+                          fill={isDistressEmotion ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.06)'} 
                           stroke={boxColor} 
                           strokeWidth="1.2" 
+                          strokeDasharray="4 2.5"
                           rx="0.6" 
                           className={isDistressEmotion ? 'animate-pulse' : ''}
                         />
 
-                        {/* High-Tech Reticle Corner Accents */}
-                        <line x1={faceX} y1={faceY} x2={faceX + 3.5} y2={faceY} stroke={boxColor} strokeWidth="2.2" />
-                        <line x1={faceX} y1={faceY} x2={faceX} y2={faceY + 3.5} stroke={boxColor} strokeWidth="2.2" />
-                        <line x1={faceX + faceW} y1={faceY} x2={faceX + faceW - 3.5} y2={faceY} stroke={boxColor} strokeWidth="2.2" />
-                        <line x1={faceX + faceW} y1={faceY} x2={faceX + faceW} y2={faceY + 3.5} stroke={boxColor} strokeWidth="2.2" />
-                        <line x1={faceX} y1={faceY + faceH} x2={faceX + 3.5} y2={faceY + faceH} stroke={boxColor} strokeWidth="2.2" />
-                        <line x1={faceX} y1={faceY + faceH} x2={faceX} y2={faceY + faceH - 3.5} stroke={boxColor} strokeWidth="2.2" />
-                        <line x1={faceX + faceW} y1={faceY + faceH} x2={faceX + faceW - 3.5} y2={faceY + faceH} stroke={boxColor} strokeWidth="2.2" />
-                        <line x1={faceX + faceW} y1={faceY + faceH} x2={faceX + faceW} y2={faceY + faceH - 3.5} stroke={boxColor} strokeWidth="2.2" />
+                        {/* Professional Tactical Corner Accents */}
+                        <line x1={faceX} y1={faceY} x2={faceX + 4} y2={faceY} stroke={boxColor} strokeWidth="2.4" />
+                        <line x1={faceX} y1={faceY} x2={faceX} y2={faceY + 4} stroke={boxColor} strokeWidth="2.4" />
+                        <line x1={faceX + faceW} y1={faceY} x2={faceX + faceW - 4} y2={faceY} stroke={boxColor} strokeWidth="2.4" />
+                        <line x1={faceX + faceW} y1={faceY} x2={faceX + faceW} y2={faceY + 4} stroke={boxColor} strokeWidth="2.4" />
+                        <line x1={faceX} y1={faceY + faceH} x2={faceX + 4} y2={faceY + faceH} stroke={boxColor} strokeWidth="2.4" />
+                        <line x1={faceX} y1={faceY + faceH} x2={faceX} y2={faceY + faceH - 4} stroke={boxColor} strokeWidth="2.4" />
+                        <line x1={faceX + faceW} y1={faceY + faceH} x2={faceX + faceW - 4} y2={faceY + faceH} stroke={boxColor} strokeWidth="2.4" />
+                        <line x1={faceX + faceW} y1={faceY + faceH} x2={faceX + faceW} y2={faceY + faceH - 4} stroke={boxColor} strokeWidth="2.4" />
 
-                        {/* Facial Landmark Tracking Points */}
-                        {/* Left Eye */}
-                        <circle cx={faceX + faceW * 0.32} cy={faceY + faceH * 0.32} r="1.2" fill="none" stroke={boxColor} strokeWidth="0.6" />
-                        <line x1={faceX + faceW * 0.32 - 1.5} y1={faceY + faceH * 0.32} x2={faceX + faceW * 0.32 + 1.5} y2={faceY + faceH * 0.32} stroke={boxColor} strokeWidth="0.6" />
-                        {/* Right Eye */}
-                        <circle cx={faceX + faceW * 0.68} cy={faceY + faceH * 0.32} r="1.2" fill="none" stroke={boxColor} strokeWidth="0.6" />
-                        <line x1={faceX + faceW * 0.68 - 1.5} y1={faceY + faceH * 0.32} x2={faceX + faceW * 0.68 + 1.5} y2={faceY + faceH * 0.32} stroke={boxColor} strokeWidth="0.6" />
-                        {/* Nose Tip */}
-                        <circle cx={faceX + faceW * 0.50} cy={faceY + faceH * 0.52} r="0.7" fill={boxColor} />
-                        {/* Mouth Tracking Line */}
-                        <path 
-                          d={isHappyEmotion 
-                            ? `M ${faceX + faceW * 0.35} ${faceY + faceH * 0.72} Q ${faceX + faceW * 0.50} ${faceY + faceH * 0.82} ${faceX + faceW * 0.65} ${faceY + faceH * 0.72}`
-                            : isDistressEmotion
-                            ? `M ${faceX + faceW * 0.35} ${faceY + faceH * 0.78} Q ${faceX + faceW * 0.50} ${faceY + faceH * 0.68} ${faceX + faceW * 0.65} ${faceY + faceH * 0.78}`
-                            : `M ${faceX + faceW * 0.35} ${faceY + faceH * 0.74} L ${faceX + faceW * 0.65} ${faceY + faceH * 0.74}`
-                          } 
-                          stroke={boxColor} 
-                          strokeWidth="0.8" 
-                          fill="none" 
-                        />
-
-                        {/* Top Pill: Live Facial Expression */}
+                        {/* Top Pill: Live Gender & Expression Prediction */}
                         <rect 
                           x={Math.max(1, faceX - 2)} 
                           y={Math.max(1, faceY - 5.8)} 
-                          width={Math.max(faceW + 4, 48)} 
+                          width={Math.max(faceW + 4, 52)} 
                           height="5.4" 
-                          fill={boxColor} 
+                          fill="#000000ee" 
+                          stroke={boxColor}
+                          strokeWidth="0.8"
                           rx="0.4" 
                         />
                         <text 
                           x={faceX + (faceW / 2)} 
-                          y={Math.max(4.8, faceY - 2.0)} 
-                          fill="#ffffff" 
-                          fontSize="2.4" 
+                          y={Math.max(4.8, faceY - 2.2)} 
+                          fill={isDistressEmotion ? '#f87171' : '#34d399'} 
+                          fontSize="2.3" 
                           fontFamily="monospace" 
                           fontWeight="bold" 
                           textAnchor="middle"
                         >
-                          EXPRESSION: {liveEmotion} ({emotionConfidence}%)
+                          👤 {detectedGender.toUpperCase()} ({genderConfidence}%) • {liveEmotion}
                         </text>
 
-                        {/* Bottom Pill: Gender & Age Classification */}
+                        {/* Bottom Pill: Safety Status & Age */}
                         <rect 
                           x={Math.max(1, faceX - 1)} 
                           y={faceY + faceH + 1.2} 
-                          width={Math.max(faceW + 2, 44)} 
+                          width={Math.max(faceW + 2, 46)} 
                           height="4.8" 
-                          fill="#000000dd" 
+                          fill="#000000ee" 
                           rx="0.3" 
-                          stroke="#38bdf8"
-                          strokeWidth="0.5"
+                          stroke={boxColor}
+                          strokeWidth="0.6"
                         />
                         <text 
                           x={faceX + (faceW / 2)} 
                           y={faceY + faceH + 4.4} 
-                          fill="#38bdf8" 
+                          fill="#ffffff" 
                           fontSize="2.1" 
                           fontFamily="monospace" 
                           fontWeight="bold" 
                           textAnchor="middle"
                         >
-                          GENDER: {detectedGender.toUpperCase()} ({genderConfidence}%) • AGE: {ageRange}
+                          {isDistressEmotion ? '⚠️ DISTRESS SOS TRIGGERED' : '🛡️ NORMAL / SAFE'} • AGE: {ageRange}
                         </text>
                       </g>
                     );
                   })()}
-
-                  {/* Animal Detection Reticle when enabled */}
-                  {isAnimalDetected && (
-                    <g>
-                      <rect x="64" y="38" width="30" height="45" fill="none" stroke="#f59e0b" strokeWidth="1.2" rx="0.5" />
-                      <rect x="63" y="32.5" width="36" height="5.2" fill="#d97706" rx="0.4" />
-                      <text x="81" y="36.3" fill="#ffffff" fontSize="2.2" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
-                        CANINE DETECTED (94%)
-                      </text>
-                    </g>
-                  )}
                 </g>
               ) : (
                 /* CCTV REAL-TIME MULTI-OBJECT COMPUTER VISION DETECTIONS */
