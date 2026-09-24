@@ -14,6 +14,7 @@ import SettingsView from '../components/SettingsView';
 import AlertDetailModal from '../components/AlertDetailModal';
 import DispatchModal from '../components/DispatchModal';
 import EvidenceModal from '../components/EvidenceModal';
+import { INITIAL_EVIDENCE } from '../components/EvidenceView';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -23,13 +24,56 @@ export default function Dashboard() {
   const [selectedEvidence, setSelectedEvidence] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
+  const [evidenceList, setEvidenceList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('guardian_angel_evidence');
+      return saved ? JSON.parse(saved) : INITIAL_EVIDENCE;
+    } catch (e) {
+      return INITIAL_EVIDENCE;
+    }
+  });
+
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleAddEvidence = (newEvidence) => {
+    setEvidenceList(prev => {
+      const updated = [newEvidence, ...prev];
+      try {
+        localStorage.setItem('guardian_angel_evidence', JSON.stringify(updated));
+      } catch (e) {
+        console.log('Error saving evidence to local storage:', e);
+      }
+      return updated;
+    });
+    showToast(`Evidence ${newEvidence.id} securely ingested into Evidence Vault!`);
   };
 
   const handleCaptureSnapshot = (camera) => {
-    showToast(`Evidence Snapshot captured from ${camera.name || camera.id} and vaulted with SHA-256 hash.`);
+    if (camera?.snapshotData) {
+      const newEvd = {
+        id: `EVD-${Math.floor(1000 + Math.random() * 9000)}`,
+        incidentId: `INC-2026-${Math.floor(100 + Math.random() * 900)}`,
+        eventTitle: `${camera.name || camera.id} Surveillance Capture`,
+        category: camera.risk === 'HIGH' || camera.risk === 'CRITICAL' ? 'Human Safety Emergency' : 'Surveillance Record',
+        camera: camera.name || camera.id,
+        cameraId: camera.id || 'CAM-NODE',
+        timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' | ' + new Date().toLocaleDateString('en-GB'),
+        riskScore: camera.risk === 'CRITICAL' ? 96 : camera.risk === 'HIGH' ? 91 : 25,
+        fileType: 'Forensic Video Frame (1080p)',
+        fileSize: '3.8 MB',
+        sha256: Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join(''),
+        verifiedBy: 'Inspector R. Rajesh (Duty Officer)',
+        verificationStatus: 'Verified Legally Admissible',
+        thumbnail: camera.snapshotData,
+        isUploadedEvidence: camera.id === 'CAM-UPLOAD'
+      };
+      handleAddEvidence(newEvd);
+    } else {
+      showToast(`Evidence Snapshot captured from ${camera.name || camera.id} and vaulted with SHA-256 hash.`);
+    }
   };
 
   const handleDispatchAlert = (alertOrIncident) => {
@@ -76,6 +120,8 @@ export default function Dashboard() {
               selectedCameraId={selectedCameraId}
               onCaptureSnapshot={handleCaptureSnapshot}
               onDispatchAlert={handleDispatchAlert}
+              onAddEvidence={handleAddEvidence}
+              onNavigateToTab={(tab) => setActiveTab(tab)}
             />
           )}
 
@@ -95,6 +141,8 @@ export default function Dashboard() {
 
           {activeTab === 'evidence' && (
             <EvidenceView 
+              evidenceList={evidenceList}
+              setEvidenceList={setEvidenceList}
               onOpenEvidenceModal={(evidence) => setSelectedEvidence(evidence)}
             />
           )}

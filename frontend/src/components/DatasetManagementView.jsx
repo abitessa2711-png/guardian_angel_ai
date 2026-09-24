@@ -305,7 +305,7 @@ export default function DatasetManagementView() {
             {/* Video Frame Canvas Preview */}
             <div className="mt-3 relative aspect-video bg-slate-950 rounded overflow-hidden border border-slate-300">
               <img 
-                src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=600&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600&auto=format&fit=crop" 
                 alt="Annotation frame"
                 className="w-full h-full object-cover brightness-95"
               />

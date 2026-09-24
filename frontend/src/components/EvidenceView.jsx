@@ -45,7 +45,7 @@ export const INITIAL_EVIDENCE = [
     sha256: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
     verifiedBy: 'Traffic SI K. Arul',
     verificationStatus: 'Verified',
-    thumbnail: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=400&auto=format&fit=crop'
+    thumbnail: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=600&auto=format&fit=crop'
   },
   {
     id: 'EVD-9919',
@@ -81,8 +81,15 @@ export const INITIAL_EVIDENCE = [
   }
 ];
 
-export default function EvidenceView({ onOpenEvidenceModal }) {
-  const [evidenceList, setEvidenceList] = useState(INITIAL_EVIDENCE);
+export default function EvidenceView({ 
+  onOpenEvidenceModal, 
+  evidenceList: propEvidenceList, 
+  setEvidenceList: propSetEvidenceList 
+}) {
+  const [localEvidenceList, setLocalEvidenceList] = useState(INITIAL_EVIDENCE);
+  const evidenceList = propEvidenceList || localEvidenceList;
+  const setEvidenceList = propSetEvidenceList || setLocalEvidenceList;
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
@@ -155,7 +162,9 @@ export default function EvidenceView({ onOpenEvidenceModal }) {
         {filtered.map(item => (
           <div 
             key={item.id}
-            className="bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between hover:border-slate-300 transition-all"
+            className={`bg-white rounded-lg border shadow-xs overflow-hidden flex flex-col justify-between hover:border-slate-300 transition-all ${
+              item.isUploadedEvidence ? 'border-blue-400 ring-2 ring-blue-500/20 bg-blue-50/10' : 'border-slate-200'
+            }`}
           >
             <div>
               {/* Card Header */}
@@ -164,6 +173,11 @@ export default function EvidenceView({ onOpenEvidenceModal }) {
                   <FileLock2 className="w-4 h-4 text-blue-600" />
                   <span className="font-bold text-xs font-mono text-slate-900">{item.id}</span>
                   <span className="text-[10px] text-slate-500">({item.incidentId})</span>
+                  {item.isUploadedEvidence && (
+                    <span className="bg-[#FF671F] text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider animate-pulse">
+                      CAPTURED FOOTAGE
+                    </span>
+                  )}
                 </div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
                   item.verificationStatus.includes('Admissible') 
@@ -177,12 +191,64 @@ export default function EvidenceView({ onOpenEvidenceModal }) {
               </div>
 
               {/* Main Card Content */}
-              <div className="p-4 flex space-x-3.5">
-                <img 
-                  src={item.thumbnail} 
-                  alt="Evidence preview" 
-                  className="w-32 h-24 rounded object-cover border border-slate-300 shrink-0"
-                />
+              <div className="p-4 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3.5">
+                {/* Forensic CCTV Proof Frame */}
+                <div className="relative w-full sm:w-44 h-32 rounded-md overflow-hidden border border-slate-800 shrink-0 bg-black shadow-xs">
+                  <img 
+                    src={item.thumbnail} 
+                    alt="Evidence preview" 
+                    className="w-full h-full object-cover brightness-90 contrast-110"
+                  />
+                  {/* Live Forensic CCTV Stamp Header */}
+                  <div className="absolute top-1 left-1 bg-red-600/90 text-white font-mono text-[8px] font-bold px-1.5 py-0.2 rounded flex items-center space-x-1 shadow-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                    <span>{item.cameraId || 'CCTV-PROOF'}</span>
+                  </div>
+                  <div className="absolute top-1 right-1 bg-black/80 text-emerald-400 font-mono text-[7px] px-1 rounded font-bold">
+                    REC • 1080p
+                  </div>
+
+                  {/* Real Forensic SVG Bounding Reticles on Proof */}
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
+                    {item.category === 'Human Safety' || item.category === 'Women Safety Emergency' || item.isUploadedEvidence ? (
+                      <g>
+                        {/* Victim / Target Commuter Box */}
+                        <rect x="22" y="24" width="24" height="56" fill="none" stroke="#10b981" strokeWidth="1.6" />
+                        <rect x="21" y="17" width="26" height="6.5" fill="#10b981" />
+                        <text x="34" y="21.5" fill="#ffffff" fontSize="3.8" fontFamily="monospace" fontWeight="bold" textAnchor="middle">TARGET</text>
+
+                        {/* Suspect Box */}
+                        <rect x="54" y="20" width="25" height="60" fill="none" stroke="#ef4444" strokeWidth="1.6" strokeDasharray="2 1" />
+                        <rect x="53" y="13" width="27" height="6.5" fill="#ef4444" />
+                        <text x="66" y="17.5" fill="#ffffff" fontSize="3.8" fontFamily="monospace" fontWeight="bold" textAnchor="middle">SUSPECT</text>
+
+                        {/* Proximity line */}
+                        <line x1="46" y1="52" x2="54" y2="52" stroke="#f59e0b" strokeWidth="1.2" strokeDasharray="1.5 1" />
+                      </g>
+                    ) : item.category === 'Animal Safety' ? (
+                      <g>
+                        {/* Animal Hazard Box */}
+                        <rect x="24" y="28" width="52" height="50" fill="none" stroke="#f59e0b" strokeWidth="1.8" />
+                        <rect x="23" y="20" width="54" height="7.5" fill="#d97706" />
+                        <text x="50" y="25.5" fill="#ffffff" fontSize="4.2" fontFamily="monospace" fontWeight="bold" textAnchor="middle">ANIMAL HAZARD</text>
+                      </g>
+                    ) : (
+                      <g>
+                        {/* Perimeter Intrusion Reticle */}
+                        <rect x="26" y="24" width="48" height="56" fill="none" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="3 1.5" />
+                        <rect x="25" y="17" width="50" height="6.5" fill="#0284c7" />
+                        <text x="50" y="21.5" fill="#ffffff" fontSize="3.8" fontFamily="monospace" fontWeight="bold" textAnchor="middle">SURVEILLANCE</text>
+                      </g>
+                    )}
+                  </svg>
+
+                  {/* Legal Custody Hash Watermark */}
+                  <div className="absolute bottom-0 inset-x-0 bg-black/85 px-1.5 py-0.5 text-[7px] font-mono text-slate-300 flex items-center justify-between border-t border-slate-700">
+                    <span className="truncate">SEC-65B COMPLIANT</span>
+                    <span className="text-amber-400 font-bold">POLICE EVIDENCE</span>
+                  </div>
+                </div>
+
                 <div className="flex-1 min-w-0 text-xs space-y-1">
                   <h4 className="font-bold text-slate-900 text-xs leading-snug">{item.eventTitle}</h4>
                   <p className="text-[11px] text-slate-600">{item.camera}</p>

@@ -26,7 +26,7 @@ export const ANIMAL_SAFETY_EVENTS = [
     riskScore: 88,
     timestamp: '11:23:10 AM',
     speedEstimate: '0.4 m/s (Crossing median)',
-    snapshot: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=600&auto=format&fit=crop',
+    snapshot: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=600&auto=format&fit=crop',
     actionTaken: 'Automated VMS highway billboard speed warning triggered',
     status: 'Active Alert'
   },

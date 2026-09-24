@@ -135,13 +135,78 @@ export default function DashboardView({
     { time: '15:00', High: 27, Medium: 15, Low: 8 },
   ];
 
-  // Recent Alert Items matching mockup
+  // Recent Alert Items matching Tamil Nadu Command Center CCTV feeds
   const recentAlerts = [
-    { time: '15:24:18', camera: 'CAM 04', location: 'Market Area', event: 'Persistent Stalking Vector', risk: 'HIGH', status: 'New', dotColor: 'bg-red-500' },
-    { time: '15:19:47', camera: 'CAM 02', location: 'Main Junction', event: 'Aggressive Approach Vector', risk: 'MEDIUM', status: 'Under Review', dotColor: 'bg-orange-500' },
-    { time: '15:15:32', camera: 'CAM 07', location: 'Bus Stop', event: 'Stalking Detected', risk: 'HIGH', status: 'New', dotColor: 'bg-red-500' },
-    { time: '15:10:05', camera: 'CAM 11', location: 'Railway Entrance', event: 'Suspicious Interaction', risk: 'MEDIUM', status: 'Reviewed', dotColor: 'bg-orange-500' },
-    { time: '15:05:18', camera: 'CAM 06', location: 'Public Street', event: 'Following', risk: 'LOW', status: 'Closed', dotColor: 'bg-emerald-500' },
+    { 
+      id: 'ALT-1044',
+      time: '15:24:18', 
+      camera: 'CAM 04', 
+      location: 'Commercial Bazaar South', 
+      event: 'Persistent Stalking Vector', 
+      risk: 'HIGH', 
+      status: 'New', 
+      dotColor: 'bg-red-500',
+      category: 'Women Safety',
+      confidence: 0.94,
+      description: 'Persistent following vector locked in Commercial Bazaar alleyway. Proximity gap < 1.2m with sudden course changes.',
+      snapshot: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop'
+    },
+    { 
+      id: 'ALT-1043',
+      time: '15:19:47', 
+      camera: 'CAM 02', 
+      location: 'Main Junction Signal East', 
+      event: 'Aggressive Approach Vector', 
+      risk: 'MEDIUM', 
+      status: 'Under Review', 
+      dotColor: 'bg-orange-500',
+      category: 'Public Safety',
+      confidence: 0.88,
+      description: 'Rapid closing distance trajectory detected near pedestrian crossing. Commuter accelerated pace.',
+      snapshot: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?q=80&w=800&auto=format&fit=crop'
+    },
+    { 
+      id: 'ALT-1042',
+      time: '15:15:32', 
+      camera: 'CAM 07', 
+      location: 'Kamaraj Nagar Bus Shelter', 
+      event: 'Stalking & Cornering Detected', 
+      risk: 'HIGH', 
+      status: 'New', 
+      dotColor: 'bg-red-500',
+      category: 'Women Safety',
+      confidence: 0.92,
+      description: 'Subject loitering in dimly lit waiting bay cornering female passenger. Alert transmitted to beat constable.',
+      snapshot: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=800&auto=format&fit=crop'
+    },
+    { 
+      id: 'ALT-1041',
+      time: '15:10:05', 
+      camera: 'CAM 11', 
+      location: 'Railway Junction Feeder Stand', 
+      event: 'Suspicious Auto Encircling', 
+      risk: 'MEDIUM', 
+      status: 'Reviewed', 
+      dotColor: 'bg-orange-500',
+      category: 'Traffic & Commuter',
+      confidence: 0.85,
+      description: 'Repeated slow pass-by and encirclement of lone waiting passenger outside station gate.',
+      snapshot: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=800&auto=format&fit=crop'
+    },
+    { 
+      id: 'ALT-1040',
+      time: '15:05:18', 
+      camera: 'CAM 06', 
+      location: 'Sub-Lane 4 Residential', 
+      event: 'Pedestrian Flow Tracking', 
+      risk: 'LOW', 
+      status: 'Closed', 
+      dotColor: 'bg-emerald-500',
+      category: 'General Transit',
+      confidence: 0.96,
+      description: 'Routine pedestrian commute through monitored residential corridor. Zero anomalies recorded.',
+      snapshot: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop'
+    },
   ];
 
   return (
@@ -318,6 +383,7 @@ export default function DashboardView({
                       loop
                       muted
                       playsInline
+                      preload="metadata"
                       className="w-full h-full object-cover brightness-95 contrast-105"
                     />
 
@@ -441,11 +507,37 @@ export default function DashboardView({
                       </g>
                     );
                   })
-                ) : (
+                ) : selectedCam.threat ? (
+                  /* Dynamic Camera-Aware Threat Reticles when backend is offline/Vercel */
                   <g>
-                    <rect x="25" y="40" width="50" height="20" fill="none" stroke="#38bdf8" strokeWidth="0.5" strokeDasharray="3 2" rx="1" />
-                    <text x="50" y="52" fill="#38bdf8" fontSize="2.2" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
-                      [ SENSOR ACTIVE: PERIMETER SCAN ]
+                    {/* Target Woman Commuter Box */}
+                    <rect x="26" y="24" width="22" height="60" fill="none" stroke="#10b981" strokeWidth="1.2" rx="0.5" />
+                    <rect x="25" y="18.5" width="44" height="5.2" fill="#10b981" rx="0.4" />
+                    <text x="47" y="22.3" fill="#ffffff" fontSize="2.4" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                      WOMAN COMMUTER #4412 (96%)
+                    </text>
+
+                    {/* Stalker / Approaching Suspect Box */}
+                    <rect x="58" y="22" width="24" height="62" fill="none" stroke="#ef4444" strokeWidth="1.2" rx="0.5" className="animate-pulse" />
+                    <rect x="57" y="16.5" width="42" height="5.2" fill="#ef4444" rx="0.4" />
+                    <text x="78" y="20.3" fill="#ffffff" fontSize="2.3" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                      SUSPECT: {selectedCam.behavior.slice(0, 18).toUpperCase()} (91%)
+                    </text>
+
+                    {/* Proximity Warning Intercept Vector */}
+                    <line x1="48" y1="52" x2="58" y2="52" stroke="#f59e0b" strokeWidth="0.8" strokeDasharray="1.5 1" />
+                    <rect x="42" y="55" width="26" height="4.5" fill="#000000cc" rx="0.3" />
+                    <text x="55" y="58.2" fill="#facc15" fontSize="2.0" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                      GAP: 1.2m [CRITICAL]
+                    </text>
+                  </g>
+                ) : (
+                  /* Safe Commuter Normal Transit Box */
+                  <g>
+                    <rect x="36" y="24" width="26" height="62" fill="none" stroke="#38bdf8" strokeWidth="1.0" rx="0.5" />
+                    <rect x="35" y="18.5" width="42" height="5.2" fill="#0284c7" rx="0.4" />
+                    <text x="56" y="22.3" fill="#ffffff" fontSize="2.3" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                      COMMUTER TRANSIT (98%) • SAFE
                     </text>
                   </g>
                 )}

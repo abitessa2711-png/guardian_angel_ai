@@ -18,55 +18,55 @@ import {
 export const TRACKED_WOMEN_SUBJECTS = [
   {
     id: 'SUBJ-4412',
-    name: 'Female Commuter #4412',
-    location: 'Central Bus Stand Platform 1 (Camera 02)',
+    name: 'Female Commuter #4412 (Kavitha S.)',
+    location: 'Chennai CMBT Bus Stand Platform 1 (Camera 02)',
     cameraId: 'CAM-02',
     riskLevel: 'Critical',
     riskScore: 94,
     riskFactors: 'Fear Emotion (92%) + Persistent Following (18m) + 0.8m Gap',
     duration: '18 mins tracked',
     status: 'In Danger Vector',
-    dispatchAssigned: 'Patrol Car #12 (SI M. Vijay)',
-    snapshot: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop'
+    dispatchAssigned: 'Patrol Car #12 (SI M. Vijay - Chennai City Police)',
+    snapshot: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=400&auto=format&fit=crop'
   },
   {
     id: 'SUBJ-4419',
-    name: 'College Student #4419',
-    location: 'Campus Subway Corridor (Camera 05)',
+    name: 'College Student #4419 (Priya M.)',
+    location: 'Gandhipuram Women\'s College Subway (Camera 05)',
     cameraId: 'CAM-05',
     riskLevel: 'High',
     riskScore: 86,
     riskFactors: 'Isolated Solo Transit + Sudden Agitation Movement',
     duration: '6 mins tracked',
     status: 'High Alert',
-    dispatchAssigned: 'Campus Security Unit #02',
-    snapshot: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=300&auto=format&fit=crop'
+    dispatchAssigned: 'Campus Security Unit #02 (Coimbatore North)',
+    snapshot: 'https://images.unsplash.com/photo-1589156280159-27698a70f29e?q=80&w=400&auto=format&fit=crop'
   },
   {
     id: 'SUBJ-4425',
-    name: 'Pedestrian #4425',
-    location: 'Gandhi Market North Alley (Camera 09)',
+    name: 'Pedestrian #4425 (Anitha R.)',
+    location: 'Trichy Gandhi Market North Alley (Camera 09)',
     cameraId: 'CAM-09',
     riskLevel: 'Medium',
     riskScore: 68,
     riskFactors: 'Repeated Path Intersect + Trailing Suspect',
     duration: '12 mins tracked',
     status: 'Under Active Watch',
-    dispatchAssigned: 'Beat Constable S. Selvam',
-    snapshot: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop'
+    dispatchAssigned: 'Beat Constable S. Selvam (Trichy Town PS)',
+    snapshot: 'https://images.unsplash.com/photo-1614283233556-f35b0c801ef1?q=80&w=400&auto=format&fit=crop'
   },
   {
     id: 'SUBJ-4431',
-    name: 'Office Commuter #4431',
-    location: 'Railway Junction East Gate (Camera 03)',
+    name: 'Office Commuter #4431 (Deepa K.)',
+    location: 'Anna Nagar Metro East Gate, Chennai (Camera 03)',
     cameraId: 'CAM-03',
     riskLevel: 'Low',
     riskScore: 24,
-    riskFactors: 'Normal Movement Pattern in Well-Lit Zone',
+    riskFactors: 'Normal Movement Pattern in Well-Lit Safe Corridor',
     duration: '4 mins tracked',
     status: 'Safe Transit',
-    dispatchAssigned: 'None Required',
-    snapshot: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=300&auto=format&fit=crop'
+    dispatchAssigned: 'Kavalan SOS Shield Active',
+    snapshot: 'https://images.unsplash.com/photo-1621592484082-2d05b1290d7a?q=80&w=400&auto=format&fit=crop'
   }
 ];
 
@@ -235,16 +235,54 @@ export default function WomenSafetyMonitoringView({ onSelectAlert, onDispatchAle
             </div>
 
             {/* Subject Snapshot & Threat Radar */}
-            <div className="mt-3 relative aspect-video bg-slate-950 rounded-lg overflow-hidden border border-slate-300">
+            <div className="mt-3 relative aspect-video bg-slate-950 rounded-lg overflow-hidden border border-slate-700 shadow-xs">
               <img 
                 src={selectedSubject.snapshot} 
                 alt="Subject Preview" 
                 className="w-full h-full object-cover brightness-95"
               />
-              <div className="absolute top-2 left-2 bg-slate-900/80 text-white font-mono text-[10px] px-2 py-0.5 rounded">
-                LOC: {selectedSubject.cameraId}
+              {/* Surveillance Overlay Reticle */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
+                {/* Target Bounding Box */}
+                <rect 
+                  x="28" 
+                  y="16" 
+                  width="44" 
+                  height="70" 
+                  fill="none" 
+                  stroke={selectedSubject.riskLevel === 'Critical' ? '#ef4444' : '#f59e0b'} 
+                  strokeWidth="1.5" 
+                  className={selectedSubject.riskLevel === 'Critical' ? 'animate-pulse' : ''}
+                />
+                {/* Corner Accents */}
+                <line x1="28" y1="16" x2="33" y2="16" stroke="#ffffff" strokeWidth="2.5" />
+                <line x1="28" y1="16" x2="28" y2="21" stroke="#ffffff" strokeWidth="2.5" />
+                <line x1="72" y1="16" x2="67" y2="16" stroke="#ffffff" strokeWidth="2.5" />
+                <line x1="72" y1="16" x2="72" y2="21" stroke="#ffffff" strokeWidth="2.5" />
+                <line x1="28" y1="86" x2="33" y2="86" stroke="#ffffff" strokeWidth="2.5" />
+                <line x1="28" y1="86" x2="28" y2="81" stroke="#ffffff" strokeWidth="2.5" />
+                <line x1="72" y1="86" x2="67" y2="86" stroke="#ffffff" strokeWidth="2.5" />
+                <line x1="72" y1="86" x2="72" y2="81" stroke="#ffffff" strokeWidth="2.5" />
+
+                {/* Target Header Pill */}
+                <rect 
+                  x="22" 
+                  y="9" 
+                  width="56" 
+                  height="6.5" 
+                  fill={selectedSubject.riskLevel === 'Critical' ? '#ef4444' : '#d97706'} 
+                  rx="0.5" 
+                />
+                <text x="50" y="13.8" fill="#ffffff" fontSize="3.6" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                  TARGET: {selectedSubject.id} ({selectedSubject.riskScore}%)
+                </text>
+              </svg>
+
+              <div className="absolute top-2 left-2 bg-slate-900/90 text-white font-mono text-[9px] px-2 py-0.5 rounded flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                <span>REC • LOC: {selectedSubject.cameraId}</span>
               </div>
-              <div className="absolute bottom-2 left-2 bg-red-600 text-white font-bold text-[10px] px-2 py-0.5 rounded animate-pulse">
+              <div className="absolute bottom-2 left-2 bg-red-600 text-white font-bold text-[10px] px-2 py-0.5 rounded shadow-sm animate-pulse">
                 {selectedSubject.status}
               </div>
             </div>
